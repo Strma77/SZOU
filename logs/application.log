@@ -1,0 +1,130 @@
+02-11-2025 15:10:45 [main] INFO  org.example.app.Main - === Pokretanje aplikacije ===
+02-11-2025 15:10:54 [main] ERROR org.example.app.Main - Neispravan broj korisnika: Mora postojati barem jedan profesor!
+02-11-2025 15:11:01 [main] INFO  org.example.app.Main - === Pokretanje aplikacije ===
+02-11-2025 15:11:03 [main] INFO  org.example.app.Main - Kreiranje profesora i studenata: 2 profesora, 2 studenata
+02-11-2025 15:11:03 [main] INFO  org.example.app.Main - Unos profesora #1
+02-11-2025 15:11:32 [main] DEBUG org.example.app.Main - Profesor: Luka Lukic, ID=10, username=llukic, maxCourses=1
+02-11-2025 15:11:32 [main] INFO  org.example.app.Main - Unos profesora #2
+02-11-2025 15:11:39 [main] DEBUG org.example.app.Main - Profesor: Pero Peric, ID=11, username=pperic, maxCourses=2
+02-11-2025 15:11:39 [main] INFO  org.example.app.Main - Unos studenta #1
+02-11-2025 15:11:47 [main] DEBUG org.example.app.Main - Student: Vito Strmecki, ID=100, username=vstrmecki, maxCourses=1
+02-11-2025 15:11:47 [main] INFO  org.example.app.Main - Unos studenta #2
+02-11-2025 15:12:04 [main] DEBUG org.example.app.Main - Student: David Topic, ID=101, username=dtopic, maxCourses=2
+02-11-2025 15:12:07 [main] INFO  org.example.app.Main - Unos 3 tecajeva
+02-11-2025 15:12:14 [main] INFO  org.example.app.Main - Kreiranje tečaja: Programiranje (ECTS=8)
+02-11-2025 15:12:18 [main] DEBUG org.example.app.Main - Odabrani profesor za tečaj Programiranje: Luka Lukic
+02-11-2025 15:12:20 [main] INFO  org.example.app.Main - Kreiranje lekcije #1 za tečaj Programiranje
+02-11-2025 15:12:33 [main] DEBUG org.example.app.Main - Lekcija kreirana: Programiranje u javi 2025-10-25 15:0 trajanje 180min
+02-11-2025 15:12:41 [main] INFO  org.example.app.Main - Kreiranje tečaja: Matematika (ECTS=6)
+02-11-2025 15:12:43 [main] DEBUG org.example.app.Main - Odabrani profesor za tečaj Matematika: Pero Peric
+02-11-2025 15:12:46 [main] INFO  org.example.app.Main - Kreiranje lekcije #1 za tečaj Matematika
+02-11-2025 15:12:56 [main] DEBUG org.example.app.Main - Lekcija kreirana: Statistika 1022-11-14 10:0 trajanje 100min
+02-11-2025 15:12:59 [main] INFO  org.example.app.Main - Kreiranje tečaja: KK (ECTS=1)
+02-11-2025 15:13:00 [main] DEBUG org.example.app.Main - Odabrani profesor za tečaj KK: Pero Peric
+02-11-2025 15:13:10 [main] INFO  org.example.app.Main - Kreiranje lekcije #1 za tečaj KK
+02-11-2025 15:13:18 [main] DEBUG org.example.app.Main - Lekcija kreirana: KK 2026-01-01 6:0 trajanje 10min
+02-11-2025 15:13:18 [main] INFO  org.example.app.Main - Unos upisa studenata počeo
+02-11-2025 15:13:26 [main] INFO  org.example.app.Main - Student Vito upisan u tečaj Programiranje
+02-11-2025 15:13:35 [main] WARN  org.example.app.Main - Korisnik odabrao neispravan ID tečaja: 3
+02-11-2025 15:13:41 [main] WARN  org.example.app.Main - Korisnik odabrao neispravan ID tečaja: 2
+02-11-2025 15:13:43 [main] INFO  org.example.app.Main - Student David upisan u tečaj KK
+02-11-2025 15:13:48 [main] INFO  org.example.app.Main - Student David upisan u tečaj KK
+02-11-2025 15:13:48 [main] INFO  org.example.app.Main - Ispis svih upisa
+02-11-2025 15:13:48 [main] INFO  org.example.app.Main - Pretrage korisnika i tečajeva
+02-11-2025 15:13:52 [main] ERROR org.example.app.Main - Pretraga nije dala rezultat: student Luka nije pronađen
+02-11-2025 19:04:06 [main] INFO  org.example.app.Main - === Pokretanje aplikacije ===
+02-11-2025 19:04:16 [main] INFO  org.example.app.Main - 
+=== Pokretanje aplikacije ===
+02-11-2025 19:04:19 [main] INFO  org.example.services.UserService - 
+Unos profesora #1
+02-11-2025 19:04:27 [main] DEBUG org.example.services.UserService - 
+Profesor: Luka Lukic, ID=10, username=llukic, maxCourses=1
+02-11-2025 19:04:27 [main] INFO  org.example.services.UserService - 
+Unos profesora #2
+02-11-2025 19:04:41 [main] DEBUG org.example.services.UserService - 
+Profesor: Pero Peric, ID=11, username=pperic, maxCourses=2
+02-11-2025 19:04:41 [main] INFO  org.example.services.UserService - 
+Unos studenta #1
+02-11-2025 19:04:46 [main] DEBUG org.example.services.UserService - 
+Student: Vito Strmecki, ID=100, username=vstrmecki, maxCourses=1
+02-11-2025 19:04:46 [main] INFO  org.example.services.UserService - 
+Unos studenta #2
+02-11-2025 19:04:51 [main] DEBUG org.example.services.UserService - 
+Student: David Topic, ID=101, username=dtopic, maxCourses=2
+02-11-2025 19:04:51 [main] INFO  org.example.services.UserService - 
+======Svi korisnici spojeni u jedan niz: ukupno 4======
+02-11-2025 19:04:53 [main] INFO  org.example.services.CourseService - 
+Unos 3 tecajeva
+02-11-2025 19:05:18 [main] DEBUG org.example.services.CourseService - 
+Lekcija kreirana: Programiranje u Javi 2025-12-12 12:32 trajanje 220min
+02-11-2025 19:05:18 [main] INFO  org.example.services.CourseService - 
+Kreiran tečaj: Programiranje (ECTS=8, Profesor=Luka)
+02-11-2025 19:05:43 [main] DEBUG org.example.services.CourseService - 
+Lekcija kreirana: Statistika 2222-11-14 10:0 trajanje 100min
+02-11-2025 19:05:43 [main] INFO  org.example.services.CourseService - 
+Kreiran tečaj: Matematika (ECTS=5, Profesor=Pero)
+02-11-2025 19:05:58 [main] DEBUG org.example.services.CourseService - 
+Lekcija kreirana: KK 2026-01-01 6:0 trajanje 10min
+02-11-2025 19:05:58 [main] INFO  org.example.services.CourseService - 
+Kreiran tečaj: KK (ECTS=1, Profesor=Pero)
+02-11-2025 19:05:58 [main] INFO  o.example.services.EnrollmentService - Unos upisa studenata počeo
+02-11-2025 19:06:20 [main] INFO  o.example.services.EnrollmentService - Student Vito upisan u tečaj Programiranje
+02-11-2025 19:06:26 [main] INFO  o.example.services.EnrollmentService - Student David upisan u tečaj KK
+02-11-2025 19:06:26 [main] INFO  o.example.services.EnrollmentService - Unos upisa studenata završen.
+02-11-2025 19:06:26 [main] INFO  org.example.services.SearchService - Search loop started
+02-11-2025 19:07:07 [main] INFO  org.example.services.UserService - 
+Student found: Vito Strmecki
+02-11-2025 19:07:16 [main] INFO  org.example.services.UserService - 
+Professor found: Pero Peric
+02-11-2025 19:07:24 [main] INFO  org.example.services.CourseService - 
+Course found: Matematika
+02-11-2025 19:07:32 [main] INFO  org.example.services.SearchService - 
+Exiting search loop...
+02-11-2025 19:07:32 [main] INFO  org.example.services.PrintService - 
+=== Ispis svih profesora i studenata ===
+02-11-2025 19:07:32 [main] INFO  org.example.app.Main - Program zavrsio normalno
+02-11-2025 19:23:33 [main] INFO  org.example.app.Main - 
+=== Pokretanje aplikacije ===
+02-11-2025 19:23:38 [main] INFO  org.example.services.UserService - 
+Unos profesora #1
+02-11-2025 19:23:44 [main] DEBUG org.example.services.UserService - 
+Profesor: Luka Lukic, ID=10, username=llukic, maxCourses=1
+02-11-2025 19:23:44 [main] INFO  org.example.services.UserService - 
+Unos profesora #2
+02-11-2025 19:23:48 [main] DEBUG org.example.services.UserService - 
+Profesor: Pero Peric, ID=11, username=pperic, maxCourses=2
+02-11-2025 19:23:48 [main] INFO  org.example.services.UserService - 
+Unos studenta #1
+02-11-2025 19:23:53 [main] DEBUG org.example.services.UserService - 
+Student: Vito Strmecki, ID=100, username=vstrmecki, maxCourses=1
+02-11-2025 19:23:53 [main] INFO  org.example.services.UserService - 
+Unos studenta #2
+02-11-2025 19:23:59 [main] DEBUG org.example.services.UserService - 
+Student: David Topic, ID=101, username=dtopic, maxCourses=2
+02-11-2025 19:23:59 [main] INFO  org.example.services.UserService - 
+======Svi korisnici spojeni u jedan niz: ukupno 4======
+02-11-2025 19:24:01 [main] INFO  org.example.services.CourseService - 
+Unos 3 tecajeva
+02-11-2025 19:24:35 [main] DEBUG org.example.services.CourseService - 
+Lekcija kreirana: Programiranje u Javi 2025-12-20 10:0 trajanje 200min
+02-11-2025 19:24:35 [main] INFO  org.example.services.CourseService - 
+Kreiran tečaj: Programiranje (ECTS=8, Profesor=Luka)
+02-11-2025 19:25:13 [main] DEBUG org.example.services.CourseService - 
+Lekcija kreirana: Statistika 2022-03-10 14:1 trajanje 100min
+02-11-2025 19:25:13 [main] INFO  org.example.services.CourseService - 
+Kreiran tečaj: Matematika (ECTS=6, Profesor=Pero)
+02-11-2025 19:25:39 [main] DEBUG org.example.services.CourseService - 
+Lekcija kreirana: KK 2025-01-01 6:0 trajanje 10min
+02-11-2025 19:25:39 [main] INFO  org.example.services.CourseService - 
+Kreiran tečaj: KK (ECTS=1, Profesor=Pero)
+02-11-2025 19:25:39 [main] INFO  o.example.services.EnrollmentService - Unos upisa studenata počeo
+02-11-2025 19:25:43 [main] INFO  o.example.services.EnrollmentService - Student Vito upisan u tečaj Programiranje
+02-11-2025 19:25:48 [main] INFO  o.example.services.EnrollmentService - Student David upisan u tečaj KK
+02-11-2025 19:26:14 [main] INFO  o.example.services.EnrollmentService - Student David upisan u tečaj Matematika
+02-11-2025 19:26:14 [main] INFO  o.example.services.EnrollmentService - Unos upisa studenata završen.
+02-11-2025 19:26:14 [main] INFO  org.example.services.SearchService - Search loop started
+02-11-2025 19:26:22 [main] INFO  org.example.services.SearchService - 
+Exiting search loop...
+02-11-2025 19:26:22 [main] INFO  org.example.services.PrintService - 
+=== Ispis svih profesora i studenata ===
+02-11-2025 19:26:22 [main] INFO  org.example.app.Main - Program zavrsio normalno
