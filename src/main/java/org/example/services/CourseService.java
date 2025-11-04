@@ -32,7 +32,7 @@ public class CourseService {
      *
      * @param courseNum number of courses to create
      * @param users array of users for professor selection (not null)
-     * @return array of newly created courses
+     * @return list of newly created courses
      * @throws TooManyAttemptsException if input validation fails after 3 attempts
      * @throws NullPointerException if users array is null
      */

@@ -20,7 +20,6 @@ import java.util.stream.Stream;
 public class UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
-
     /**
      * Tracks cumulative total of maximum courses across all students created.
      */

@@ -8,6 +8,7 @@ import org.example.exceptions.TooManyAttemptsException;
 import org.example.utils.InputHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.List;
 
 /**
  * Provides interactive search functionality for students, professors, and courses.
@@ -34,13 +35,13 @@ public class SearchService {
      *   <li>Q - Exit search loop</li>
      * </ul>
      *
-     * @param studenti array of students to search (not null)
-     * @param profesori array of professors to search (not null)
+     * @param students array of students to search (not null)
+     * @param professors array of professors to search (not null)
      * @param courses array of courses to search (not null)
      * @throws TooManyAttemptsException if input validation fails after 3 attempts
      * @throws NullPointerException if any array is null
      */
-    public static void searchLoop(Student[] studenti, Professor[] profesori, Course[] courses) throws TooManyAttemptsException {
+    public static void searchLoop(List<Student> students, List<Professor> professors, List<Course> courses) throws TooManyAttemptsException {
 
         logger.info("Search loop started");
         char choice;
@@ -58,8 +59,8 @@ public class SearchService {
             choice = InputHelper.readNonEmptyString("Izbor: ").toUpperCase().charAt(0);
             try {
                 switch (choice) {
-                    case 'A' -> UserService.findStudentByFirstName(studenti);
-                    case 'B' -> UserService.findProfesorByLastName(profesori);
+                    case 'A' -> UserService.findStudentByFirstName(students);
+                    case 'B' -> UserService.findProfesorByLastName(professors);
                     case 'C' -> CourseService.findCourseByName(courses);
 
                     case 'Q' -> {

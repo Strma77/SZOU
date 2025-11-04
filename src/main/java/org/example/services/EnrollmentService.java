@@ -9,6 +9,9 @@ import org.example.utils.InputHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Provides service methods for managing student course enrollments.
  * <p>
@@ -40,44 +43,56 @@ public class EnrollmentService {
      *   <li>No duplicate enrollment validation (same student + course allowed)</li>
      * </ul>
      *
-     * @param studenti array of students available for enrollment (not null)
+     * @param students array of students available for enrollment (not null)
      * @param courses array of courses available for enrollment (not null)
      * @param maxCoursesOvr total number of available courses
-     * @return array of created enrollments
+     * @return list of created enrollments
      * @throws TooManyAttemptsException if input validation fails after 3 attempts
      * @throws NullPointerException if any array is null
      */
-    public static Enrollment[] enrollStudents(Student[] studenti, Course[] courses, int maxCoursesOvr) throws TooManyAttemptsException {
-        logger.info("Unos upisa studenata počeo");
-        Enrollment[] enrollments = new Enrollment[studenti.length];
+    public static List<Enrollment> enrollStudents(List<Student> students, List<Course> courses, int maxCoursesOvr) throws TooManyAttemptsException {
+        logger.info("Student enrollment beginning.");
+        List<Enrollment> enrollments = new ArrayList<>();
 
-        for(int i = 0; i < studenti.length; i++){
-            int sid = InputHelper.readPositiveInt("Upis #" + (i + 1) + ":\nOdaberi ID studenta (1-" + studenti.length + "): ") - 1;
-            while (sid < 0 || sid >= studenti.length) {
-                System.out.println("Neispravan ID studenta!");
-                sid = InputHelper.readPositiveInt("Odaberi ID studenta (1-" + studenti.length + "): ") - 1;
-                logger.warn("Korisnik odabrao neispravan ID studenta: {}", sid);
+        for(int i = 0; i < students.size(); i++){
+            int sid = InputHelper.readPositiveInt("Enrollment #" + (i + 1) + ":\nChoose student ID (1-" + students.size() + "): ") - 1;
+            while (sid < 0 || sid >= students.size()) {
+                System.out.println("Invalid student ID!");
+                sid = InputHelper.readPositiveInt("Choose student ID (1-" + students.size() + "): ") - 1;
+                logger.warn("User chose invalid student ID: {}", sid);
             }
 
-            int cid = InputHelper.readPositiveInt("Odaberi tecaj (1-" + maxCoursesOvr + "): ") - 1;
-            while (cid < 0 || cid >= maxCoursesOvr) {
-                System.out.println("Neispravan ID tecaja!");
-                cid = InputHelper.readPositiveInt("Odaberi tecaj (1-" + maxCoursesOvr + "): ") - 1;
-                logger.warn("Korisnik odabrao neispravan ID tečaja: {}", cid);
-            }
-
-            int semestar;
+            int cid;
             do {
-                semestar = InputHelper.readPositiveInt("Unesi semestar (1-6): ");
-            } while (semestar < 1 || semestar > 6);
+                cid = InputHelper.readPositiveInt("Choose course ID (1-" + maxCoursesOvr + "): ") - 1;
 
-            enrollments[i] = new Enrollment(studenti[sid], courses[cid], semestar);
+                if (cid >= courses.size()) {
+                    System.out.println("⚠️ Only " + courses.size() + " courses available. Try again.");
+                    logger.warn("User chose course ID beyond list size: {}", cid);
+                    cid = -1;
+                } else if (cid < 0) {
+                    System.out.println("Invalid choice, must be at least 1!");
+                    cid = -1;
+                }
+            } while (cid < 0);
+
+            int semester;
+            do {
+                semester = InputHelper.readPositiveInt("Choose semester (1-6): ");
+            } while (semester < 1 || semester > 6);
+
+            Student selectedStudent = students.get(sid);
+            Course selectedCourse = courses.get(cid);
+
+            Enrollment enrollment = new Enrollment(selectedStudent, selectedCourse, semester);
+            enrollments.add(enrollment);
+
             try {
-                studenti[sid].enrollCourses(courses[cid].getName());
-                logger.info("Student {} upisan u tečaj {}", studenti[sid].getFirstName(), courses[cid].getName());
+                selectedStudent.enrollCourses(selectedCourse.getName());
+                logger.info("Student {} upisan u tečaj {}", selectedStudent.getFirstName(), selectedCourse.getName());
             } catch (LimitExceededException e) {
                 System.out.println("⚠️" + e.getMessage());
-                logger.warn("Student {} pokušao previše tečajeva: {}", studenti[sid].getFirstName(), e.getMessage());
+                logger.warn("Student {} pokušao previše tečajeva: {}", selectedStudent.getFirstName(), e.getMessage());
             }
         }
         logger.info("Unos upisa studenata završen.");

@@ -49,13 +49,6 @@ public class Professor extends User {
     public List<String> getTeachingCourses() { return teachingCourses; }
 
     /**
-     * Returns the number of courses currently teaching.
-     *
-     * @return count of teaching courses
-     */
-    public int getCourseCount() { return teachingCourses.size(); }
-
-    /**
      * Builder class for constructing {@link Professor} instances.
      * <p>
      * Extends {@link User.UserBuilder} and adds maxCourses configuration.
