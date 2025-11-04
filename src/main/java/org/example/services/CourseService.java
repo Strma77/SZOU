@@ -9,6 +9,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Provides service methods for managing courses and lessons.
@@ -34,22 +36,24 @@ public class CourseService {
      * @throws TooManyAttemptsException if input validation fails after 3 attempts
      * @throws NullPointerException if users array is null
      */
-    public static Course[] createCourses(int courseNum, User[] users) throws TooManyAttemptsException {
-        Course[] courses = new Course[courseNum];
-        logger.info("\nUnos {} tecajeva", courseNum);
+    public static List<Course> createCourses(int courseNum, List<User> users) throws TooManyAttemptsException {
+        List<Course> courses = new ArrayList<>();
+        logger.info("\nCourse {} input", courseNum);
 
         for (int i = 0; i < courseNum; i++) {
-            System.out.println("\n--- Tečaj #" + (i + 1) + " ---");
-            String courseName = InputHelper.readNonEmptyString("Naziv: ");
-            int ects = InputHelper.readPositiveInt("Koliko ECTSa ima tečaj: ");
+            System.out.println("\n--- Course #" + (i + 1) + " ---");
+            String courseName = InputHelper.readNonEmptyString("Name: ");
+            int ects = InputHelper.readPositiveInt("How many ECTS: ");
             Professor prof = selectProfessor(users);
-            Lesson[] lessons = createLessons();
+            List<Lesson> lessons = createLessons();
+            Course course = new Course(courseName, prof, lessons.size(), ects);
 
-            courses[i] = new Course(courseName, prof, lessons.length, ects);
-            for (Lesson l : lessons) courses[i].addLesson(l);
-            if (prof != null) prof.addCourse(courseName);
+            for(Lesson l : lessons) course.addLesson(l);
+            if(prof != null) prof.addCourse(courseName);
 
-            logger.info("\nKreiran tečaj: {} (ECTS={}, Profesor={})", courseName, ects, prof.getFirstName());
+            courses.add(course);
+
+            logger.info("\nCourse created: {} (ECTS={}, Profesor={})", courseName, ects, prof.getFirstName());
         }
         return courses;
     }
@@ -63,8 +67,8 @@ public class CourseService {
      * @return selected professor or null if no valid selection
      * @throws TooManyAttemptsException if input validation fails after 3 attempts
      */
-    private static Professor selectProfessor(User[] users) throws TooManyAttemptsException {
-        System.out.println("Odaberi profesora za ovaj tecaj: ");
+    private static Professor selectProfessor(List<User> users) throws TooManyAttemptsException {
+        System.out.println("Choose the teacher for this course: ");
         int index = 1;
         for (User u : users) {
             if (u instanceof Professor) {
@@ -75,10 +79,10 @@ public class CourseService {
 
         int chosen;
         while (true) {
-            chosen = InputHelper.readPositiveInt("Unesi index prof: ");
+            chosen = InputHelper.readPositiveInt("Which teacher (index): ");
             if (chosen > 0 && chosen < index) break;
-            System.out.println("Neispravan index. Probaj ponovo.");
-            logger.warn("Neispravan index profesora: {}", chosen);
+            System.out.println("Invalid index. Try again.");
+            logger.warn("Invalid teacher index: {}", chosen);
         }
 
         int counter = 0;
@@ -97,26 +101,26 @@ public class CourseService {
      * Prompts for lesson name, duration, date, and start time for each lesson.
      * Date format: {@code dd-MM-yyyy}, time format: {@code HH:mm}.
      *
-     * @return array of created and scheduled lessons
+     * @return list of created and scheduled lessons
      * @throws TooManyAttemptsException if input validation fails after 3 attempts
      */
-    private static Lesson[] createLessons() throws TooManyAttemptsException {
-        int lessonCount = InputHelper.readPositiveInt("Koliko lekcija ima tecaj?: ");
-        Lesson[] lessons = new Lesson[lessonCount];
+    private static List<Lesson> createLessons() throws TooManyAttemptsException {
+        int lessonCount = InputHelper.readPositiveInt("How many lessons does this course have?: ");
+        List<Lesson> lessons = new ArrayList<>();
 
         for (int i = 0; i < lessonCount; i++) {
-            System.out.println("\n--- Lekcija #" + (i + 1) + " ---");
-            String name = InputHelper.readNonEmptyString("Naziv: ");
-            int duration = InputHelper.readPositiveInt("Trajanje (min): ");
+            System.out.println("\n--- Lesson #" + (i + 1) + " ---");
+            String name = InputHelper.readNonEmptyString("Name: ");
+            int duration = InputHelper.readPositiveInt("Length (min): ");
 
             LocalDate date = readDate();
             LocalTime startTime = readTime();
 
             Lesson lesson = new Lesson(name, duration);
             lesson.schedule(date, startTime.getHour(), startTime.getMinute(), duration);
-            lessons[i] = lesson;
+            lessons.add(lesson);
 
-            logger.debug("\nLekcija kreirana: {} {} {}:{} trajanje {}min", name, date, startTime.getHour(), startTime.getMinute(), duration);
+            logger.debug("\nLesson created: {} {} {}:{} length {}min", name, date, startTime.getHour(), startTime.getMinute(), duration);
         }
         return lessons;
     }
@@ -131,12 +135,12 @@ public class CourseService {
      */
     private static LocalDate readDate() throws TooManyAttemptsException {
         while (true) {
-            String input = InputHelper.readNonEmptyString("Unesi datum lekcije (dd-MM-yyyy): ");
+            String input = InputHelper.readNonEmptyString("Date of the lesson (dd-MM-yyyy): ");
             try {
                 return LocalDate.parse(input, DATE_FMT);
             } catch (DateTimeParseException e) {
-                System.out.println("Neispravan format! Probaj ponovo.");
-                logger.warn("Neispravan datum lekcije: {}", input);
+                System.out.println("Invalid format! Try again.");
+                logger.warn("Invalid lesson date: {}", input);
             }
         }
     }
@@ -151,12 +155,12 @@ public class CourseService {
      */
     private static LocalTime readTime() throws TooManyAttemptsException {
         while (true) {
-            String input = InputHelper.readNonEmptyString("Unesi vrijeme pocetka lekcije (HH:mm): ");
+            String input = InputHelper.readNonEmptyString("Lesson start time (HH:mm): ");
             try {
                 return LocalTime.parse(input, TIME_FMT);
             } catch (DateTimeParseException e) {
-                System.out.println("Neispravan format! Probaj ponovo.");
-                logger.warn("Neispravno vrijeme lekcije: {}", input);
+                System.out.println("Invalid format! Try again.");
+                logger.warn("Invalid lesson time: {}", input);
             }
         }
     }
@@ -172,14 +176,14 @@ public class CourseService {
      * @throws TooManyAttemptsException if input validation fails after 3 attempts
      * @throws NullPointerException if courses array is null
      */
-    public static void findCourseByName(Course[] courses) throws NotFoundException, TooManyAttemptsException {
-        String cName = InputHelper.readNonEmptyString("Unesi naziv tečaja: ");
+    public static void findCourseByName(List<Course> courses) throws NotFoundException, TooManyAttemptsException {
+        String cName = InputHelper.readNonEmptyString("Insert course name: ");
         boolean found = false;
 
         for (Course course : courses) {
             if (course != null && course.getName().equalsIgnoreCase(cName)) {
 
-                System.out.println("Pronađen tečaj: " + course.getName() +
+                System.out.println("Course found: " + course.getName() +
                         " (ECTS: " + course.getECTS() + ")" +
                         " (Profesor: " + course.getProfessor().getFirstName() +
                         " " + course.getProfessor().getLastName() + ")");
@@ -189,6 +193,6 @@ public class CourseService {
             }
         }
 
-        if (!found) throw new NotFoundException("Tečaj nije pronađen.");
+        if (!found) throw new NotFoundException("Course not found.");
     }
 }

@@ -1,5 +1,11 @@
 package org.example.entities;
 
+import org.example.exceptions.DuplicateEnrollmentException;
+import org.example.exceptions.LimitExceededException;
+import org.example.exceptions.NegativeValueException;
+import java.util.List;
+import java.util.ArrayList;
+
 /**
  * Represents a professor with course teaching capabilities.
  * <p>
@@ -8,8 +14,8 @@ package org.example.entities;
  */
 public class Professor extends User {
 
-    private final String[] teachingCourses;
-    private int courseCount = 0;
+    private final List<String> teachingCourses;
+    private final int maxCourses;
 
     /**
      * Constructs a professor from the provided builder.
@@ -18,7 +24,8 @@ public class Professor extends User {
      */
     protected Professor(ProfessorBuilder builder){
         super(builder);
-        this.teachingCourses = new String[builder.maxCourses];
+        this.teachingCourses = new ArrayList<>();
+        this.maxCourses = builder.maxCourses;
     }
 
     /**
@@ -29,23 +36,24 @@ public class Professor extends User {
      * @param courseName the name of the course to add (not null)
      */
     public void addCourse(String courseName) {
-        if (courseCount < teachingCourses.length) teachingCourses[courseCount++] = courseName;
-        else System.out.println("Nema više mjesta za nove tečajeve za profesora " + getFirstName() + getLastName());
+        if(teachingCourses.contains(courseName)) throw new DuplicateEnrollmentException("Professor " + getFirstName() + " " + getLastName() + " is already teaching in the course: " + courseName);
+        if(teachingCourses.size() >= maxCourses) throw new LimitExceededException("Professor " + getFirstName() + " " + getLastName() + " has reached the maximum number of courses (" + maxCourses + ")!");
+        teachingCourses.add(courseName);
     }
 
     /**
-     * Returns the array of teaching course names.
+     * Returns the list of teaching course names.
      *
-     * @return array of course names (may contain null elements)
+     * @return read-only list of course names
      */
-    public String[] getTeachingCourses() { return teachingCourses; }
+    public List<String> getTeachingCourses() { return teachingCourses; }
 
     /**
      * Returns the number of courses currently teaching.
      *
      * @return count of teaching courses
      */
-    public int getCourseCount() { return courseCount; }
+    public int getCourseCount() { return teachingCourses.size(); }
 
     /**
      * Builder class for constructing {@link Professor} instances.
@@ -89,6 +97,7 @@ public class Professor extends User {
          * @return this builder for method chaining
          */
         public ProfessorBuilder maxCourses(int maxCourses) {
+            if (maxCourses <= 0 ) throw new NegativeValueException("maxCourses variable must be a positive number!");
             this.maxCourses = maxCourses;
             return this;
         }

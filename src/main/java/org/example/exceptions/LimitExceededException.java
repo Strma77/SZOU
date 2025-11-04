@@ -6,14 +6,14 @@ package org.example.exceptions;
  * This runtime exception enforces course enrollment or teaching limits for
  * students and professors based on their configured maximum capacity.
  */
-public class CourseLimitExceededException extends RuntimeException {
+public class LimitExceededException extends RuntimeException {
 
     /**
      * Constructs a new exception with the specified detail message.
      *
      * @param message the detail message explaining the limit violation
      */
-    public CourseLimitExceededException(String message) {
+    public LimitExceededException(String message) {
         super(message);
     }
 }

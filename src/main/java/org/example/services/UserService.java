@@ -5,6 +5,9 @@ import org.example.exceptions.*;
 import org.example.utils.InputHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Provides service methods for managing user entities including professors and students.
@@ -28,35 +31,36 @@ public class UserService {
      * <p>
      * IDs start at 10, email format: {@code username[ID]@profuni.hr}, password: {@code [ID]123}.
      *
-     * @param profNum the number of professors to create
-     * @return array of newly created professors
+     * @return list of newly created professors
      * @throws TooManyAttemptsException if input validation fails after 3 attempts
      * @throws StringIndexOutOfBoundsException if first name is empty
      */
-    public static Professor[] createProfessors(int profNum) throws TooManyAttemptsException {
-        Professor[] profesori = new Professor[profNum];
+    public static List<Professor> createProfessors() throws TooManyAttemptsException {
+        List<Professor> professors = new ArrayList<>();
+
+        int profNum = InputHelper.readPositiveInt("How many professors would you like to input?: ");
 
         for (int i = 0; i < profNum; i++) {
-            logger.info("\nUnos profesora #{}", i + 1);
-            String firstName = InputHelper.readNonEmptyString("Ime: ");
-            String lastName = InputHelper.readNonEmptyString("Prezime: ");
+            logger.info("\nProfessor input #{}", i + 1);
+            String firstName = InputHelper.readNonEmptyString("Name: ");
+            String lastName = InputHelper.readNonEmptyString("Surname: ");
             int ID = 10 + i;
             String username = (firstName.charAt(0) + lastName).toLowerCase();
             String email = username + ID + "@profuni.hr";
             String passwd = ID + "123";
-            int maxC = InputHelper.readPositiveInt("Koliko tecajeva taj profesor predaje?: ");
+            int maxC = InputHelper.readPositiveInt("How many courses is this teacher teaching?: ");
 
             logger.debug("\nProfesor: {} {}, ID={}, username={}, maxCourses={}", firstName, lastName, ID, username, maxC);
 
-            profesori[i] = new Professor.ProfessorBuilder(firstName, lastName, ID)
+            professors.add(new Professor.ProfessorBuilder(firstName, lastName, ID)
                     .username(username)
                     .password(passwd)
                     .email(email)
                     .maxCourses(maxC)
-                    .build();
+                    .build());
         }
 
-        return profesori;
+        return professors;
     }
 
     /**
@@ -65,53 +69,52 @@ public class UserService {
      * IDs start at 100, email format: {@code username[ID]@studuni.hr}, password: {@code [ID]456}.
      * Updates {@link #maxCoursesOvr} with cumulative course totals.
      *
-     * @param studNum the number of students to create
-     * @return array of newly created students
+     * @return list of newly created students
      * @throws TooManyAttemptsException if input validation fails after 3 attempts
      * @throws StringIndexOutOfBoundsException if first name is empty
      */
-    public static Student[] createStudents(int studNum) throws TooManyAttemptsException {
-        Student[] studenti = new Student[studNum];
+    public static List<Student> createStudents() throws TooManyAttemptsException {
+        List<Student> students = new ArrayList<>();
+
+        int studNum = InputHelper.readPositiveInt("How many professors would you like to input?: ");
 
         for (int i = 0; i < studNum; i++) {
-            logger.info("\nUnos studenta #{}", i + 1);
-            String firstName = InputHelper.readNonEmptyString("Ime: ");
-            String lastName = InputHelper.readNonEmptyString("Prezime: ");
+            logger.info("\nStudent input #{}", i + 1);
+            String firstName = InputHelper.readNonEmptyString("Name: ");
+            String lastName = InputHelper.readNonEmptyString("Surname: ");
             int ID = 100 + i;
             String username = (firstName.charAt(0) + lastName).toLowerCase();
             String email = username + ID + "@studuni.hr";
             String passwd = ID + "456";
-            int maxC = InputHelper.readPositiveInt("Koliko tecajeva taj student pohadja?: ");
+            int maxC = InputHelper.readPositiveInt("How many courses is this student taking?: ");
             maxCoursesOvr += maxC;
 
             logger.debug("\nStudent: {} {}, ID={}, username={}, maxCourses={}", firstName, lastName, ID, username, maxC);
 
-            studenti[i] = new Student.StudentBuilder(firstName, lastName, ID)
+            students.add(new Student.StudentBuilder(firstName, lastName, ID)
                     .username(username)
                     .password(passwd)
                     .email(email)
                     .maxCourses(maxC)
-                    .build();
+                    .build());
         }
 
-        return studenti;
+        return students;
     }
 
     /**
-     * Merges professor and student arrays into a single user array.
+     * Merges professor and student lists into a single user list.
      * <p>
      * Professors appear first, followed by students, preserving original order.
      *
-     * @param profesori the array of professors (not null)
-     * @param studenti the array of students (not null)
-     * @return merged array containing all users
-     * @throws NullPointerException if either array is null
+     * @param professors the list of professors (not null)
+     * @param students the list of students (not null)
+     * @return merged list containing all users
+     * @throws NullPointerException if either list is null
      */
-    public static User[] mergeUsers(Professor[] profesori, Student[] studenti) {
-        User[] users = new User[profesori.length + studenti.length];
-        System.arraycopy(profesori, 0, users, 0, profesori.length);
-        System.arraycopy(studenti, 0, users, profesori.length, studenti.length);
-        logger.info("\n======Svi korisnici spojeni u jedan niz: ukupno {}======", users.length);
+    public static List<User> mergeUsers(List<Professor> professors, List<Student> students) {
+        List<User> users = Stream.concat(professors.stream(), students.stream()).toList();
+        logger.info("\n======All users connected in one list: overall {}======", users.size());
         return users;
     }
 
@@ -120,24 +123,24 @@ public class UserService {
      * <p>
      * Performs case-insensitive search and displays all matches. Null elements are skipped.
      *
-     * @param studenti the array of students to search (not null)
+     * @param students the list of students to search (not null)
      * @throws NotFoundException if no student with specified name is found
      * @throws TooManyAttemptsException if input validation fails after 3 attempts
-     * @throws NullPointerException if array is null
+     * @throws NullPointerException if list is null
      */
-    public static void findStudentByFirstName(Student[] studenti) throws NotFoundException, TooManyAttemptsException {
-        String name = InputHelper.readNonEmptyString("Unesi ime studenta: ");
+    public static void findStudentByFirstName(List<Student> students) throws NotFoundException, TooManyAttemptsException {
+        String name = InputHelper.readNonEmptyString("Name of the student: ");
         boolean found = false;
 
-        for (Student s : studenti) {
+        for (Student s : students) {
             if (s != null && s.getFirstName().equalsIgnoreCase(name)) {
-                System.out.println("Pronađen: " + s.getFirstName() + " " + s.getLastName());
+                System.out.println("Found: " + s.getFirstName() + " " + s.getLastName());
                 logger.info("\nStudent found: {} {}", s.getFirstName(), s.getLastName());
                 found = true;
             }
         }
 
-        if (!found) throw new NotFoundException("Student nije pronađen.");
+        if (!found) throw new NotFoundException("Student not found.");
     }
 
     /**
@@ -145,24 +148,24 @@ public class UserService {
      * <p>
      * Performs case-insensitive search and displays all matches. Null elements are skipped.
      *
-     * @param profesori the array of professors to search (not null)
+     * @param professors the array of professors to search (not null)
      * @throws NotFoundException if no professor with specified name is found
      * @throws TooManyAttemptsException if input validation fails after 3 attempts
      * @throws NullPointerException if array is null
      */
-    public static void findProfesorByLastName(Professor[] profesori) throws NotFoundException, TooManyAttemptsException {
-        String lastName = InputHelper.readNonEmptyString("Unesi prezime profesora: ");
+    public static void findProfesorByLastName(List<Professor> professors) throws NotFoundException, TooManyAttemptsException {
+        String lastName = InputHelper.readNonEmptyString("Professor name: ");
         boolean found = false;
 
-        for (Professor p : profesori) {
+        for (Professor p : professors) {
             if (p != null && p.getLastName().equalsIgnoreCase(lastName)) {
-                System.out.println("Pronađen: " + p.getFirstName() + " " + p.getLastName());
+                System.out.println("Found: " + p.getFirstName() + " " + p.getLastName());
                 logger.info("\nProfessor found: {} {}", p.getFirstName(), p.getLastName());
                 found = true;
             }
         }
 
-        if (!found) throw new NotFoundException("Profesor nije pronađen.");
+        if (!found) throw new NotFoundException("Professor not found.");
     }
 
     /**

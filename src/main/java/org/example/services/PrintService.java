@@ -4,6 +4,8 @@ import org.example.entities.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 /**
  * Provides formatting and printing utilities for displaying entity information.
  * <p>
@@ -42,7 +44,7 @@ public class PrintService {
      * @param courses array of courses for lookup (not null)
      * @throws NullPointerException if any array is null
      */
-    public static void printUsers(User[] users, Course[] courses) {
+    public static void printUsers(List<User> users, Course[] courses) {
         logger.info("\n=== Ispis svih profesora i studenata ===");
 
         for (User u : users) {

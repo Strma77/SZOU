@@ -3,7 +3,7 @@ package org.example.services;
 import org.example.entities.Course;
 import org.example.entities.Enrollment;
 import org.example.entities.Student;
-import org.example.exceptions.CourseLimitExceededException;
+import org.example.exceptions.LimitExceededException;
 import org.example.exceptions.TooManyAttemptsException;
 import org.example.utils.InputHelper;
 import org.slf4j.Logger;
@@ -75,7 +75,7 @@ public class EnrollmentService {
             try {
                 studenti[sid].enrollCourses(courses[cid].getName());
                 logger.info("Student {} upisan u tečaj {}", studenti[sid].getFirstName(), courses[cid].getName());
-            } catch (CourseLimitExceededException e) {
+            } catch (LimitExceededException e) {
                 System.out.println("⚠️" + e.getMessage());
                 logger.warn("Student {} pokušao previše tečajeva: {}", studenti[sid].getFirstName(), e.getMessage());
             }

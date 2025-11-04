@@ -1,5 +1,11 @@
 package org.example.entities;
 
+import org.example.exceptions.DuplicateEnrollmentException;
+import org.example.exceptions.LimitExceededException;
+import org.example.services.CourseService;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Represents an academic course with lessons, professor assignment, and ECTS credits.
  * <p>
@@ -10,9 +16,9 @@ public class Course {
 
     private final String name;
     private final Professor professor;
-    private final Lesson[] lessons;
-    private int lessonCount = 0;
+    private final List<Lesson> lessons;
     private int ECTS = 0;
+    private final int maxLessons;
 
     /**
      * Constructs a course with the specified properties.
@@ -25,7 +31,8 @@ public class Course {
     public Course(String name, Professor professor, int maxLessons, int ECTS) {
         this.name = name;
         this.professor = professor;
-        this.lessons = new Lesson[maxLessons];
+        this.maxLessons = maxLessons;
+        this.lessons = new ArrayList<>();
         this.ECTS = ECTS;
     }
 
@@ -37,8 +44,10 @@ public class Course {
      * @param lesson the lesson to add (not null)
      */
     public void addLesson(Lesson lesson){
-        if(lessonCount < lessons.length) lessons[lessonCount++] = lesson;
-        else  System.out.println("Ne može se dodati više lekcija u tečaj " + name);
+        if (lessons.contains(lesson.getName()))throw new DuplicateEnrollmentException("Lesson " + lesson.getName() + " is already enrolled in the course " + name + ".");
+        if(lessons.size() >= maxLessons) throw new LimitExceededException("Course " + name + " has reached the maximum number of lessons(" + maxLessons + ").");
+
+        lessons.add(lesson);
     }
 
     /**
@@ -60,7 +69,7 @@ public class Course {
      *
      * @return lesson array (may contain null elements)
      */
-    public Lesson[] getLessons() { return lessons; }
+    public List<Lesson> getLessons() { return lessons; }
 
     /**
      * Returns the ECTS credit value.
@@ -83,10 +92,10 @@ public class Course {
         sb.append("Course: ").append(name).append("\n");
         sb.append("Profesor: ").append(professor.getFirstName()).append(" ").append(professor.getLastName()).append("\n");
         sb.append("Lekcije:\n");
-        for (int i = 0; i < lessonCount; i++) {
-            sb.append("-").append(lessons[i]).append("\n");
+        for (Lesson l : lessons) {
+            sb.append("-").append(l.getName()).append("\n");
         }
-        System.out.println("====================");
+        System.out.println("====================\n");
         return sb.toString();
     }
 }

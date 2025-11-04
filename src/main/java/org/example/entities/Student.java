@@ -1,7 +1,10 @@
 package org.example.entities;
 
 import org.example.exceptions.DuplicateEnrollmentException;
+import org.example.exceptions.LimitExceededException;
 import org.example.exceptions.NegativeValueException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a student with course enrollment capabilities.
@@ -11,8 +14,8 @@ import org.example.exceptions.NegativeValueException;
  */
 public class Student extends User{
 
-    private String[] enrolledCourses;
-    private int courseCount = 0;
+    private List<String> enrolledCourses;
+    private final int maxCourses;
 
     /**
      * Constructs a student from the provided builder.
@@ -21,7 +24,8 @@ public class Student extends User{
      */
     protected Student(StudentBuilder builder){
         super(builder);
-        this.enrolledCourses = new String[builder.maxCourses];
+        this.enrolledCourses = new ArrayList<>();
+        this.maxCourses = builder.maxCourses;
     }
 
     /**
@@ -33,31 +37,32 @@ public class Student extends User{
      * @throws DuplicateEnrollmentException if student has reached maximum course limit
      */
     public void enrollCourses(String courseName){
-        if (courseCount < enrolledCourses.length) enrolledCourses[courseCount++] = courseName;
-        else { throw new DuplicateEnrollmentException("Student " + getFirstName() + " " + getLastName() + " je dostigao limit tečajeva!") ; }
+        if(enrolledCourses.contains(courseName)) throw new DuplicateEnrollmentException("Student " + getFirstName() + " " + getLastName() + " is already enrolled in the course: " + courseName);
+        if(enrolledCourses.size() >= maxCourses) throw new LimitExceededException("Student " + getFirstName() + " " + getLastName() + " has reached the maximum number of courses (" + maxCourses + ")!");
+        enrolledCourses.add(courseName);
     }
 
     /**
-     * Returns the array of enrolled course names.
+     * Returns the list of enrolled course names.
      *
-     * @return array of course names (may contain null elements)
+     * @return read-only list of course names
      */
-    public String[] getEnrolledCourses(){ return enrolledCourses; }
+    public List<String> getEnrolledCourses(){ return enrolledCourses; }
 
     /**
-     * Returns the number of courses currently enrolled.
+     * Returns the current number of enrolled courses.
      *
      * @return count of enrolled courses
      */
-    public int getCourseCount(){ return courseCount; }
+    public int getCourseCount(){ return enrolledCourses.size();}
 
     /**
      * Builder class for constructing {@link Student} instances.
      * <p>
-     * Extends {@link User.UserBuilder} and adds maxCourses configuration.
+     * Extends {@link User.UserBuilder} and adds enrollment limit configuration.
      */
     public static class StudentBuilder extends User.UserBuilder{
-        private int maxCourses;
+        private int maxCourses = 5; // safe default
 
         /**
          * Constructs a builder with required student fields.
@@ -87,14 +92,14 @@ public class Student extends User{
         }
 
         /**
-         * Sets the maximum number of courses the student can enroll in.
+         * Sets the maximum allowed course enrollments per Student.
          *
          * @param maxCourses the maximum course limit (must be positive)
          * @return this builder for method chaining
          * @throws NegativeValueException if maxCourses is zero or negative
          */
         public StudentBuilder maxCourses(int maxCourses){
-            if (maxCourses <= 0 ) throw new NegativeValueException("Broj tečajeva mora biti pozitivan!");
+            if (maxCourses <= 0 ) throw new NegativeValueException("maxCourses variable must be a positive number!");
             this.maxCourses = maxCourses;
             return this;
         }

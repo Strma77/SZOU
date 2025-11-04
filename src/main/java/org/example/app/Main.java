@@ -5,6 +5,8 @@ import org.example.utils.InputHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.example.services.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Main application entry point for the course management system.
@@ -40,21 +42,19 @@ public class Main {
         logger.info("\n=== Pokretanje aplikacije ===");
 
         try {
-            int profNum = InputHelper.readPositiveInt("Koliko profesora zelite unijeti?: ");
-            int studNum = InputHelper.readPositiveInt("Koliko studenata zelite unijeti?: ");
-            Professor[] profesori = UserService.createProfessors(profNum);
-            Student[] studenti = UserService.createStudents(studNum);
+            List<Professor> professors = UserService.createProfessors();
+            List<Student> students = UserService.createStudents();
 
-            User[] users = UserService.mergeUsers(profesori, studenti);
+            List<User> users = UserService.mergeUsers(professors, students);
 
-            int cNum = InputHelper.readPositiveInt("Koliko tecajeva zelite unijeti?: ");
-            Course[] courses = CourseService.createCourses(cNum, users);
+            int cNum = InputHelper.readPositiveInt("How many courses would you like to input?: ");
+            List<Course> courses = CourseService.createCourses(cNum, users);
 
-            Enrollment[] enrollments = EnrollmentService.enrollStudents(studenti, courses, UserService.getMaxCoursesOvr());
+            List<Enrollment> enrollments = EnrollmentService.enrollStudents(students, courses, UserService.getMaxCoursesOvr());
 
             PrintService.printEnrollments(enrollments);
 
-            SearchService.searchLoop(studenti, profesori, courses);
+            SearchService.searchLoop(students, professors, courses);
 
             PrintService.printUsers(users, courses);
 

@@ -40,13 +40,6 @@ public abstract class Person {
     public String getLastName() { return lastName; }
 
     /**
-     * Returns the person's unique identifier.
-     *
-     * @return ID
-     */
-    public int getId() { return id; }
-
-    /**
      * Returns string representation with full name and ID.
      *
      * @return formatted string: "[FirstName] [LastName] ID: [id]"
