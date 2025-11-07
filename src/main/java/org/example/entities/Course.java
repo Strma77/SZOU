@@ -2,9 +2,9 @@ package org.example.entities;
 
 import org.example.exceptions.DuplicateEnrollmentException;
 import org.example.exceptions.LimitExceededException;
-import org.example.services.CourseService;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents an academic course with lessons, professor assignment, and ECTS credits.
@@ -17,7 +17,7 @@ public class Course {
     private final String name;
     private final Professor professor;
     private final List<Lesson> lessons;
-    private int ECTS = 0;
+    private final int ECTS;
     private final int maxLessons;
 
     /**
@@ -29,6 +29,18 @@ public class Course {
      * @param ECTS the ECTS credit value
      */
     public Course(String name, Professor professor, int maxLessons, int ECTS) {
+        if (name == null || name.isBlank())
+            throw new IllegalArgumentException("Course name cannot be empty.");
+
+        if (professor == null)
+            throw new IllegalArgumentException("Course must have an assigned professor.");
+
+        if (maxLessons <= 0)
+            throw new IllegalArgumentException("maxLessons must be positive.");
+
+        if (ECTS <= 0)
+            throw new IllegalArgumentException("ECTS must be positive.");
+
         this.name = name;
         this.professor = professor;
         this.maxLessons = maxLessons;
@@ -44,8 +56,13 @@ public class Course {
      * @param lesson the lesson to add (not null)
      */
     public void addLesson(Lesson lesson){
-        if (lessons.contains(lesson.getName()))throw new DuplicateEnrollmentException("Lesson " + lesson.getName() + " is already enrolled in the course " + name + ".");
-        if(lessons.size() >= maxLessons) throw new LimitExceededException("Course " + name + " has reached the maximum number of lessons(" + maxLessons + ").");
+        Objects.requireNonNull(lesson, "Lesson cannot be null.");
+
+        if (lessons.stream().anyMatch(l -> l.getName().equalsIgnoreCase(lesson.getName())))
+            throw new DuplicateEnrollmentException("Lesson " + lesson.getName() + " already exists in course " + name + ".");
+
+        if (lessons.size() >= maxLessons)
+            throw new LimitExceededException("Course " + name + " has reached the max number of lessons (" + maxLessons + ").");
 
         lessons.add(lesson);
     }

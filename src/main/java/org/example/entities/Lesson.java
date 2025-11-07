@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public non-sealed class Lesson implements Schedulable {
 
     private final String name;
-    private final Integer lengthMinutes;
+    private final int lengthMinutes;
     private LocalDateTime startTime;
 
     /**
@@ -21,7 +21,13 @@ public non-sealed class Lesson implements Schedulable {
      * @param name the lesson name (not null)
      * @param lengthMinutes the duration in minutes (not null)
      */
-    public Lesson(String name, Integer lengthMinutes) {
+    public Lesson(String name, int lengthMinutes) {
+        if (name == null || name.isBlank())
+            throw new IllegalArgumentException("Lesson name cannot be empty.");
+
+        if (lengthMinutes <= 0)
+            throw new IllegalArgumentException("Lesson duration must be positive.");
+
         this.name = name;
         this.lengthMinutes = lengthMinutes;
     }

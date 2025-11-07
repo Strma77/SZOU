@@ -1,5 +1,7 @@
 package org.example.entities;
 
+import java.util.Objects;
+
 /**
  * Represents a user with authentication credentials and contact information.
  * <p>
@@ -24,15 +26,19 @@ public class User extends Person{
         this.email = builder.email;
     }
 
+    public String getUsername() { return username; }
+    public String getPassword() { return password; }
+    public String getEmail() { return email; }
+
     /**
      * Builder class for constructing {@link User} instances with optional fields.
      * <p>
      * Requires first name, last name, and ID. Username, password, and email are optional.
      */
     public static class UserBuilder{
-        private String firstName;
-        private String lastName;
-        private int ID;
+        private final String firstName;
+        private final String lastName;
+        private final int ID;
         private String username;
         private String passwd;
         private String email = "";
@@ -101,5 +107,17 @@ public class User extends Person{
     @Override
     public String toString(){
         return super.toString() + " (" + username + ")";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User user)) return false;
+        return username.equals(user.username);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(username);
     }
 }

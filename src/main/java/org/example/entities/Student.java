@@ -3,8 +3,10 @@ package org.example.entities;
 import org.example.exceptions.DuplicateEnrollmentException;
 import org.example.exceptions.LimitExceededException;
 import org.example.exceptions.NegativeValueException;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Represents a student with course enrollment capabilities.
@@ -14,7 +16,7 @@ import java.util.List;
  */
 public class Student extends User{
 
-    private List<String> enrolledCourses;
+    private final Set<String> enrolledCourses;
     private final int maxCourses;
 
     /**
@@ -24,7 +26,7 @@ public class Student extends User{
      */
     protected Student(StudentBuilder builder){
         super(builder);
-        this.enrolledCourses = new ArrayList<>();
+        this.enrolledCourses = new HashSet<>();
         this.maxCourses = builder.maxCourses;
     }
 
@@ -47,7 +49,7 @@ public class Student extends User{
      *
      * @return read-only list of course names
      */
-    public List<String> getEnrolledCourses(){ return enrolledCourses; }
+    public Set<String> getEnrolledCourses(){ return Collections.unmodifiableSet(enrolledCourses); }
 
     /**
      * Returns the current number of enrolled courses.

@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.example.services.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Main application entry point for the course management system.
@@ -39,11 +40,11 @@ public class Main {
      * @param args command line arguments (not used)
      */
     static void main(String[] args) {
-        logger.info("\n=== Pokretanje aplikacije ===");
+        logger.info("\n=== App begun ===");
 
         try {
-            List<Professor> professors = UserService.createProfessors();
-            List<Student> students = UserService.createStudents();
+            Set<Professor> professors = UserService.createProfessors();
+            Set<Student> students = UserService.createStudents();
 
             List<User> users = UserService.mergeUsers(professors, students);
 
@@ -58,9 +59,9 @@ public class Main {
 
             PrintService.printUsers(users, courses);
 
-            logger.info("Program zavrsio normalno");
+            logger.info("Program finished successfully!");
         } catch (TooManyAttemptsException e) {
-            logger.error("Program prekinut: {}", e.getMessage());
+            logger.error("Program interrupted: {}", e.getMessage());
         }
     }
 }

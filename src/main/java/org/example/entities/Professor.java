@@ -3,8 +3,8 @@ package org.example.entities;
 import org.example.exceptions.DuplicateEnrollmentException;
 import org.example.exceptions.LimitExceededException;
 import org.example.exceptions.NegativeValueException;
-import java.util.List;
-import java.util.ArrayList;
+
+import java.util.*;
 
 /**
  * Represents a professor with course teaching capabilities.
@@ -14,7 +14,7 @@ import java.util.ArrayList;
  */
 public class Professor extends User {
 
-    private final List<String> teachingCourses;
+    private final Set<String> teachingCourses;
     private final int maxCourses;
 
     /**
@@ -24,7 +24,7 @@ public class Professor extends User {
      */
     protected Professor(ProfessorBuilder builder){
         super(builder);
-        this.teachingCourses = new ArrayList<>();
+        this.teachingCourses = new HashSet<>();
         this.maxCourses = builder.maxCourses;
     }
 
@@ -46,7 +46,7 @@ public class Professor extends User {
      *
      * @return read-only list of course names
      */
-    public List<String> getTeachingCourses() { return teachingCourses; }
+    public Set<String> getTeachingCourses() { return Collections.unmodifiableSet(teachingCourses); }
 
     /**
      * Builder class for constructing {@link Professor} instances.

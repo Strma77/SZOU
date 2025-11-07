@@ -13,89 +13,88 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Provides service methods for managing student course enrollments.
+ * Handles student course enrollments.
  * <p>
- * This service handles interactive enrollment creation with validation for student IDs,
- * course IDs, and semester values. Enforces course enrollment limits per student.
+ * Provides both core enrollment logic and interactive console input.
  */
 public class EnrollmentService {
 
-    public static final Logger logger = LoggerFactory.getLogger(EnrollmentService.class);
+    private static final Logger logger = LoggerFactory.getLogger(EnrollmentService.class);
 
     /**
-     * Creates enrollments for students through interactive console input.
-     * <p>
-     * Prompts for student ID, course ID, and semester for each enrollment. Validates
-     * all inputs and enforces student course limits. IDs are 1-indexed in user input
-     * but converted to 0-indexed for array access.
+     * Core method: enrolls a student in a course for a given semester.
      *
-     * <p><b>Valid input ranges:</b>
-     * <ul>
-     *   <li>Student ID: 1 to {@code studenti.length}</li>
-     *   <li>Course ID: 1 to {@code maxCoursesOvr}</li>
-     *   <li>Semester: 1 to 6</li>
-     * </ul>
-     *
-     * <p><b>Edge cases:</b>
-     * <ul>
-     *   <li>If student exceeds course limit, enrollment record is created but course not added to student</li>
-     *   <li>Same student can be enrolled multiple times with different courses</li>
-     *   <li>No duplicate enrollment validation (same student + course allowed)</li>
-     * </ul>
-     *
-     * @param students array of students available for enrollment (not null)
-     * @param courses array of courses available for enrollment (not null)
-     * @param maxCoursesOvr total number of available courses
-     * @return list of created enrollments
-     * @throws TooManyAttemptsException if input validation fails after 3 attempts
-     * @throws NullPointerException if any array is null
+     * @param student the student to enroll
+     * @param course the course to enroll in
+     * @param semester semester number (1-6)
+     * @return Enrollment object
+     * @throws LimitExceededException if the student has reached max courses
      */
-    public static List<Enrollment> enrollStudents(List<Student> students, List<Course> courses, int maxCoursesOvr) throws TooManyAttemptsException {
-        logger.info("Student enrollment beginning.");
+    public static Enrollment enrollStudent(Student student, Course course, int semester) throws LimitExceededException {
+        student.enrollCourses(course.getName());
+        logger.info("Student {} {} enrolled in course {}", student.getFirstName(), student.getLastName(), course.getName());
+        return new Enrollment(student, course, semester);
+    }
+
+    /**
+     * Interactive method: lets user create multiple enrollments via console.
+     *
+     * @param students list of students
+     * @param courses list of courses
+     * @return list of created enrollments
+     * @throws TooManyAttemptsException if input fails too many times
+     */
+    public static List<Enrollment> enrollStudents(List<Student> students, List<Course> courses, int maxCourses) throws TooManyAttemptsException {
         List<Enrollment> enrollments = new ArrayList<>();
 
-        for(int i = 0; i < students.size(); i++){
-            int sid = InputHelper.readPositiveInt("Enrollment #" + (i + 1) + ":\nChoose student ID (1-" + students.size() + "): ") - 1;
-            while (sid < 0 || sid >= students.size()) {
-                System.out.println("Invalid student ID!");
-                sid = InputHelper.readPositiveInt("Choose student ID (1-" + students.size() + "): ") - 1;
-                logger.warn("User chose invalid student ID: {}", sid);
-            }
+        for (Student student : students) {
+            System.out.println("\n--- Enroll courses for: " + student.getFirstName() + " " + student.getLastName() + " ---");
 
-            int cid;
-            do {
-                cid = InputHelper.readPositiveInt("Choose course ID (1-" + maxCoursesOvr + "): ") - 1;
+            for (int i = 0; i < maxCourses; i++) {
+                System.out.println("\nCourse #" + (i + 1) + " for " + student.getFirstName());
 
-                if (cid >= courses.size()) {
-                    System.out.println("⚠️ Only " + courses.size() + " courses available. Try again.");
-                    logger.warn("User chose course ID beyond list size: {}", cid);
-                    cid = -1;
-                } else if (cid < 0) {
-                    System.out.println("Invalid choice, must be at least 1!");
-                    cid = -1;
+                Course selectedCourse = selectCourse(courses);
+                int semester = selectSemester();
+
+                try {
+                    Enrollment enrollment = enrollStudent(student, selectedCourse, semester);
+                    enrollments.add(enrollment);
+                } catch (LimitExceededException e) {
+                    System.out.println("⚠️ " + e.getMessage());
+                    logger.warn("Student {} tried to enroll in too many courses: {}", student.getFirstName(), e.getMessage());
                 }
-            } while (cid < 0);
-
-            int semester;
-            do {
-                semester = InputHelper.readPositiveInt("Choose semester (1-6): ");
-            } while (semester < 1 || semester > 6);
-
-            Student selectedStudent = students.get(sid);
-            Course selectedCourse = courses.get(cid);
-
-            Enrollment enrollment = new Enrollment(selectedStudent, selectedCourse, semester);
-            enrollments.add(enrollment);
-
-            try {
-                selectedStudent.enrollCourses(selectedCourse.getName());
-                logger.info("Student {} upisan u tečaj {}", selectedStudent.getFirstName(), selectedCourse.getName());
-            } catch (LimitExceededException e) {
-                System.out.println("⚠️" + e.getMessage());
-                logger.warn("Student {} pokušao previše tečajeva: {}", selectedStudent.getFirstName(), e.getMessage());
             }
         }
-        logger.info("Unos upisa studenata završen.");
+
+        logger.info("Enrollment creation finished. Total enrollments: {}", enrollments.size());
         return enrollments;
+    }
+
+    private static Course selectCourse(List<Course> courses) throws TooManyAttemptsException {
+        System.out.println("Available courses:");
+        for (int i = 0; i < courses.size(); i++) {
+            Course c = courses.get(i);
+            System.out.println((i + 1) + ": " + c.getName() + " (ECTS: " + c.getECTS() + ")");
+        }
+
+        int choice = 0;
+        while (true) {
+            choice = InputHelper.readPositiveInt("Choose course ID (1-" + courses.size() + "): ");
+            if (choice >= 1 && choice <= courses.size()) break;
+            System.out.println("Invalid ID. Try again.");
+            logger.warn("Invalid course ID chosen: {}", choice);
+        }
+        return courses.get(choice - 1);
+    }
+
+    private static int selectSemester() throws TooManyAttemptsException {
+        int semester;
+        while (true) {
+            semester = InputHelper.readPositiveInt("Choose semester (1-6): ");
+            if (semester >= 1 && semester <= 6) break;
+            System.out.println("Semester must be between 1 and 6. Try again.");
+            logger.warn("Invalid semester chosen: {}", semester);
+        }
+        return semester;
     }
 }

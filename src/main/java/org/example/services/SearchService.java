@@ -49,14 +49,14 @@ public class SearchService {
         do {
             System.out.println("""
                     
-                    === Pretraživanje ===
-                    A - Student po imenu
-                    B - Profesor po prezimenu
-                    C - Tečaj po nazivu
-                    Q - Izlaz
+                    === Searching ===
+                    A - Student by name
+                    B - Professor by surname
+                    C - By course name
+                    Q - Exit
                     """);
 
-            choice = InputHelper.readNonEmptyString("Izbor: ").toUpperCase().charAt(0);
+            choice = InputHelper.readNonEmptyString("Choice: ").toUpperCase().charAt(0);
             try {
                 switch (choice) {
                     case 'A' -> UserService.findStudentByFirstName(students);
@@ -65,11 +65,11 @@ public class SearchService {
 
                     case 'Q' -> {
                         logger.info("\nExiting search loop...");
-                        System.out.println("Izlaz...");
+                        System.out.println("Exiting...");
                     }
 
                     default -> {
-                        System.out.println("Neispravan izbor!");
+                        System.out.println("Invalid choice!");
                         logger.warn("Invalid search choice: {}", choice);
                     }
                 }

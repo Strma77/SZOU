@@ -1,5 +1,7 @@
 package org.example.entities;
 
+import java.util.Objects;
+
 /**
  * Represents an abstract person with basic identifying information.
  * <p>
@@ -25,19 +27,23 @@ public abstract class Person {
         this.id = id;
     }
 
-    /**
-     * Returns the person's first name.
-     *
-     * @return first name
-     */
     public String getFirstName() { return firstName; }
 
-    /**
-     * Returns the person's last name.
-     *
-     * @return last name
-     */
     public String getLastName() { return lastName; }
+
+    public int getID() { return id; }
+
+    @Override
+    public boolean equals(Object o){
+        if(this == o) return true;
+        if(!(o instanceof Person person)) return false;
+        return id == person.id;
+    }
+
+    @Override
+    public int hashCode(){
+        return Objects.hash(id);
+    }
 
     /**
      * Returns string representation with full name and ID.

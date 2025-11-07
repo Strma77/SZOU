@@ -75,7 +75,7 @@ public class UserService {
     public static List<Student> createStudents() throws TooManyAttemptsException {
         List<Student> students = new ArrayList<>();
 
-        int studNum = InputHelper.readPositiveInt("How many professors would you like to input?: ");
+        int studNum = InputHelper.readPositiveInt("How many students would you like to input?: ");
 
         for (int i = 0; i < studNum; i++) {
             logger.info("\nStudent input #{}", i + 1);
@@ -86,7 +86,6 @@ public class UserService {
             String email = username + ID + "@studuni.hr";
             String passwd = ID + "456";
             int maxC = InputHelper.readPositiveInt("How many courses is this student taking?: ");
-            maxCoursesOvr += maxC;
 
             logger.debug("\nStudent: {} {}, ID={}, username={}, maxCourses={}", firstName, lastName, ID, username, maxC);
 
@@ -96,6 +95,10 @@ public class UserService {
                     .email(email)
                     .maxCourses(maxC)
                     .build());
+        }
+
+        for(Student s : students){
+            maxCoursesOvr += s.getCourseCount();
         }
 
         return students;
