@@ -41,24 +41,10 @@ public class Submission {
         this.feedback = feedback != null ? feedback : "";
     }
 
-    public boolean isGraded() {
-        return score != null;
-    }
-
-    public boolean isLate() {
-        return submittedDate.isAfter(assignment.getDueDate());
-    }
-
-    public double getPercentage() {
-        if (score == null) return -1;
-        return (score * 100.0) / assignment.getMaxPoints();
-    }
-
-    public GradeType getLetterGrade() {
-        if (score == null) return GradeType.NOT_GRADED;
-        return GradeType.fromScore((int) getPercentage());
-    }
-
+    public boolean isGraded() { return score != null; }
+    public boolean isLate() { return submittedDate.isAfter(assignment.getDueDate()); }
+    public double getPercentage() { if (score == null) return -1; return (score * 100.0) / assignment.getMaxPoints(); }
+    public GradeType getLetterGrade() { if (score == null) return GradeType.NOT_GRADED; return GradeType.fromScore((int) getPercentage()); }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

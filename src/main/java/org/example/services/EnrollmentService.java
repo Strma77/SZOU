@@ -1,67 +1,57 @@
 package org.example.services;
 
-import org.example.entities.Course;
+import org.example.entities.*;
+import org.example.enums.EnrollmentStatus;
+import org.example.enums.GradeType;
 import org.example.entities.Enrollment;
-import org.example.entities.Student;
+import org.example.enums.Semester;
 import org.example.exceptions.LimitExceededException;
 import org.example.exceptions.TooManyAttemptsException;
 import org.example.utils.InputHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * Handles student course enrollments.
- * <p>
- * Provides both core enrollment logic and interactive console input.
+ * Service for managing enrollments with stream operations.
  */
 public class EnrollmentService {
 
     private static final Logger logger = LoggerFactory.getLogger(EnrollmentService.class);
 
-    /**
-     * Core method: enrolls a student in a course for a given semester.
-     *
-     * @param student the student to enroll
-     * @param course the course to enroll in
-     * @param semester semester number (1-6)
-     * @return Enrollment object
-     * @throws LimitExceededException if the student has reached max courses
-     */
-    public static Enrollment enrollStudent(Student student, Course course, int semester) throws LimitExceededException {
+    public static Enrollment enrollStudent(Student student, Course course, Semester semester)
+            throws LimitExceededException {
         student.enrollCourses(course.getName());
-        logger.info("Student {} {} enrolled in course {}", student.getFirstName(), student.getLastName(), course.getName());
+        course.enrollStudent(student);
+        logger.info("Student {} {} enrolled in course {}",
+                student.getFirstName(), student.getLastName(), course.getName());
         return new Enrollment(student, course, semester);
     }
 
-    /**
-     * Interactive method: lets user create multiple enrollments via console.
-     *
-     * @param students list of students
-     * @param courses list of courses
-     * @return list of created enrollments
-     * @throws TooManyAttemptsException if input fails too many times
-     */
-    public static List<Enrollment> enrollStudents(List<Student> students, List<Course> courses, int maxCourses) throws TooManyAttemptsException {
+    public static List<Enrollment> enrollStudents(Set<Student> students, List<Course> courses,
+                                                  int maxCourses) throws TooManyAttemptsException {
         List<Enrollment> enrollments = new ArrayList<>();
 
         for (Student student : students) {
-            System.out.println("\n--- Enroll courses for: " + student.getFirstName() + " " + student.getLastName() + " ---");
+            System.out.println("\n--- Enroll courses for: " + student.getFirstName() + " " +
+                    student.getLastName() + " ---");
 
             for (int i = 0; i < maxCourses; i++) {
                 System.out.println("\nCourse #" + (i + 1) + " for " + student.getFirstName());
 
                 Course selectedCourse = selectCourse(courses);
-                int semester = selectSemester();
+                Semester semester = InputHelper.readSemester("Choose semester (1-6): ");
 
                 try {
                     Enrollment enrollment = enrollStudent(student, selectedCourse, semester);
                     enrollments.add(enrollment);
                 } catch (LimitExceededException e) {
-                    System.out.println("⚠️ " + e.getMessage());
-                    logger.warn("Student {} tried to enroll in too many courses: {}", student.getFirstName(), e.getMessage());
+                    System.out.println("⚠️  " + e.getMessage());
+                    logger.warn("Student {} tried to enroll in too many courses: {}",
+                            student.getFirstName(), e.getMessage());
+                    break;
                 }
             }
         }
@@ -70,31 +60,84 @@ public class EnrollmentService {
         return enrollments;
     }
 
+    // ==================== SORTING WITH COMPARATORS ====================
+
+    /**
+     * Sorts enrollments by student name.
+     */
+    public static List<Enrollment> sortEnrollmentsByStudentName(
+            Collection<Enrollment> enrollments) {
+        return enrollments.stream()
+                .sorted(Comparator.comparing(e -> e.student().getFirstName()))
+                .toList();
+    }
+
+    /**
+     * Sorts enrollments by grade (descending - best grades first).
+     */
+    public static List<Enrollment> sortEnrollmentsByGrade(Collection<Enrollment> enrollments) {
+        return enrollments.stream()
+                .sorted(Comparator.comparingDouble((Enrollment e) -> e.grade().getGradePoint()).reversed())
+                .toList();
+    }
+
+    /**
+     * Groups enrollments by semester.
+     */
+    public static Map<Semester, List<Enrollment>> groupEnrollmentsBySemester(
+            Collection<Enrollment> enrollments) {
+        return enrollments.stream()
+                .collect(Collectors.groupingBy(Enrollment::semester));
+    }
+
+    /**
+     * Groups enrollments by status (ACTIVE, COMPLETED, DROPPED, etc.).
+     */
+    public static Map<EnrollmentStatus, List<Enrollment>> groupEnrollmentsByStatus(
+            Collection<Enrollment> enrollments) {
+        return enrollments.stream()
+                .collect(Collectors.groupingBy(Enrollment::status));
+    }
+
+    /**
+     * Partitions enrollments by completion status: completed vs active/pending.
+     */
+    public static Map<Boolean, List<Enrollment>> partitionEnrollmentsByCompletion(
+            Collection<Enrollment> enrollments) {
+        return enrollments.stream()
+                .collect(Collectors.partitioningBy(e ->
+                        e.status() == EnrollmentStatus.COMPLETED));
+    }
+
+    /**
+     * Groups enrollments by course.
+     */
+    public static Map<String, List<Enrollment>> groupEnrollmentsByCourse(
+            Collection<Enrollment> enrollments) {
+        return enrollments.stream()
+                .collect(Collectors.groupingBy(e -> e.course().getName()));
+    }
+
+    /**
+     * Partitions enrollments by passing grade.
+     */
+    public static Map<Boolean, List<Enrollment>> partitionEnrollmentsByPassing(
+            Collection<Enrollment> enrollments) {
+        return enrollments.stream()
+                .collect(Collectors.partitioningBy(Enrollment::isPassed));
+    }
+
+    // ==================== HELPERS ====================
+
     private static Course selectCourse(List<Course> courses) throws TooManyAttemptsException {
         System.out.println("Available courses:");
         for (int i = 0; i < courses.size(); i++) {
             Course c = courses.get(i);
-            System.out.println((i + 1) + ": " + c.getName() + " (ECTS: " + c.getECTS() + ")");
+            System.out.println((i + 1) + ": " + c.getName() + " (ECTS: " + c.getECTS() +
+                    ", Level: " + c.getLevel() + ")");
         }
 
-        int choice = 0;
-        while (true) {
-            choice = InputHelper.readPositiveInt("Choose course ID (1-" + courses.size() + "): ");
-            if (choice >= 1 && choice <= courses.size()) break;
-            System.out.println("Invalid ID. Try again.");
-            logger.warn("Invalid course ID chosen: {}", choice);
-        }
-        return courses.get(choice - 1);
-    }
-
-    private static int selectSemester() throws TooManyAttemptsException {
-        int semester;
-        while (true) {
-            semester = InputHelper.readPositiveInt("Choose semester (1-6): ");
-            if (semester >= 1 && semester <= 6) break;
-            System.out.println("Semester must be between 1 and 6. Try again.");
-            logger.warn("Invalid semester chosen: {}", semester);
-        }
-        return semester;
+        int choice = InputHelper.readChoice("Choose course ID: ", courses.size());
+        return courses.get(choice);
     }
 }

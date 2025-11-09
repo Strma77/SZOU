@@ -15,8 +15,7 @@ public class Assignment {
     private final LocalDateTime dueDate;
     private final LocalDateTime createdDate;
 
-    public Assignment(String title, String description, Course course,
-                      int maxPoints, LocalDateTime dueDate) {
+    public Assignment(String title, String description, Course course, int maxPoints, LocalDateTime dueDate) {
         if (title == null || title.isBlank())
             throw new IllegalArgumentException("Assignment title cannot be empty");
 
@@ -37,10 +36,7 @@ public class Assignment {
     public int getMaxPoints() { return maxPoints; }
     public LocalDateTime getDueDate() { return dueDate; }
     public LocalDateTime getCreatedDate() { return createdDate; }
-
-    public boolean isOverdue() {
-        return LocalDateTime.now().isAfter(dueDate);
-    }
+    public boolean isOverdue() { return LocalDateTime.now().isAfter(dueDate); }
 
     @Override
     public boolean equals(Object o) {
@@ -50,9 +46,7 @@ public class Assignment {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(title, course);
-    }
+    public int hashCode() { return Objects.hash(title, course); }
 
     @Override
     public String toString() {

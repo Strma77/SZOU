@@ -19,14 +19,10 @@ public class Course {
     private final List<Student> enrolledStudents;
 
     public Course(String name, Professor professor, int maxLessons, int ECTS, CourseLevel level) {
-        if (name == null || name.isBlank())
-            throw new IllegalArgumentException("Course name cannot be empty.");
-        if (professor == null)
-            throw new IllegalArgumentException("Course must have an assigned professor.");
-        if (maxLessons <= 0)
-            throw new IllegalArgumentException("maxLessons must be positive.");
-        if (ECTS <= 0)
-            throw new IllegalArgumentException("ECTS must be positive.");
+        if (name == null || name.isBlank()) throw new IllegalArgumentException("Course name cannot be empty.");
+        if (professor == null) throw new IllegalArgumentException("Course must have an assigned professor.");
+        if (maxLessons <= 0) throw new IllegalArgumentException("maxLessons must be positive.");
+        if (ECTS <= 0) throw new IllegalArgumentException("ECTS must be positive.");
 
         this.name = name;
         this.professor = professor;

@@ -8,13 +8,11 @@ import org.example.exceptions.TooManyAttemptsException;
 import org.example.utils.InputHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.List;
+
+import java.util.Collection;
 
 /**
- * Provides interactive search functionality for students, professors, and courses.
- * <p>
- * This service implements a menu-driven search loop that delegates to appropriate
- * service methods based on user selection.
+ * Service for interactive search functionality.
  */
 public class SearchService {
 
@@ -22,26 +20,9 @@ public class SearchService {
 
     /**
      * Runs an interactive search loop with menu options for different entity types.
-     * <p>
-     * Displays a menu allowing users to search for students by first name, professors
-     * by last name, or courses by name. Continues until user selects exit option ('Q').
-     * Handles search errors gracefully and logs all operations.
-     *
-     * <p><b>Menu options:</b>
-     * <ul>
-     *   <li>A - Search student by first name</li>
-     *   <li>B - Search professor by last name</li>
-     *   <li>C - Search course by name</li>
-     *   <li>Q - Exit search loop</li>
-     * </ul>
-     *
-     * @param students array of students to search (not null)
-     * @param professors array of professors to search (not null)
-     * @param courses array of courses to search (not null)
-     * @throws TooManyAttemptsException if input validation fails after 3 attempts
-     * @throws NullPointerException if any array is null
      */
-    public static void searchLoop(List<Student> students, List<Professor> professors, List<Course> courses) throws TooManyAttemptsException {
+    public static void searchLoop(Collection<Student> students, Collection<Professor> professors,
+                                  Collection<Course> courses) throws TooManyAttemptsException {
 
         logger.info("Search loop started");
         char choice;
@@ -49,23 +30,23 @@ public class SearchService {
         do {
             System.out.println("""
                     
-                    === Searching ===
-                    A - Student by name
-                    B - Professor by surname
-                    C - By course name
-                    Q - Exit
+                    === SEARCH MENU ===
+                    A - Search student by first name
+                    B - Search professor by last name
+                    C - Search course by name
+                    Q - Exit search
                     """);
 
             choice = InputHelper.readNonEmptyString("Choice: ").toUpperCase().charAt(0);
             try {
                 switch (choice) {
                     case 'A' -> UserService.findStudentByFirstName(students);
-                    case 'B' -> UserService.findProfesorByLastName(professors);
+                    case 'B' -> UserService.findProfessorByLastName(professors);
                     case 'C' -> CourseService.findCourseByName(courses);
 
                     case 'Q' -> {
-                        logger.info("\nExiting search loop...");
-                        System.out.println("Exiting...");
+                        logger.info("Exiting search loop...");
+                        System.out.println("Exiting search...");
                     }
 
                     default -> {
@@ -74,7 +55,7 @@ public class SearchService {
                     }
                 }
             } catch (NotFoundException e) {
-                System.out.println("⚠️ " + e.getMessage());
+                System.out.println("⚠️  " + e.getMessage());
                 logger.error("Search error: {}", e.getMessage());
             }
 

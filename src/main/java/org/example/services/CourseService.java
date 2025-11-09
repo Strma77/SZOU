@@ -1,24 +1,31 @@
 package org.example.services;
 
 import org.example.entities.*;
+import org.example.enums.CourseLevel;
+import org.example.enums.LessonType;
 import org.example.exceptions.*;
 import org.example.utils.InputHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
+/**
+ * Service for managing courses with sorting and stream operations.
+ */
 public class CourseService {
 
     private static final Logger logger = LoggerFactory.getLogger(CourseService.class);
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
 
-    public static List<Course> createCourses(int courseNum, List<User> users) throws TooManyAttemptsException {
+    public static List<Course> createCourses(int courseNum, List<User> users)
+            throws TooManyAttemptsException {
         List<Course> courses = new ArrayList<>();
         logger.info("Starting creation of {} courses", courseNum);
 
@@ -27,49 +34,122 @@ public class CourseService {
 
             String courseName = InputHelper.readNonEmptyString("Name: ");
             int ects = InputHelper.readPositiveInt("How many ECTS: ");
+            CourseLevel level = InputHelper.readCourseLevel("Select course level: ");
 
             Professor prof = selectProfessor(users);
             List<Lesson> lessons = createLessons();
 
-            Course course = new Course(courseName, prof, 50, ects);
+            Course course = new Course(courseName, prof, 50, ects, level);
 
-            for (Lesson l : lessons) addLessonToCourse(course, l);
+            for (Lesson l : lessons) {
+                course.addLesson(l);
+            }
             prof.addCourse(courseName);
 
             courses.add(course);
-            logger.info("Course created: {} (ECTS={}, Professor={})", courseName, ects, prof.getFirstName());
+            logger.info("Course created: {} (ECTS={}, Level={}, Professor={})",
+                    courseName, ects, level, prof.getFirstName());
         }
 
         return courses;
     }
 
-    public static void findCourseByName(List<Course> courses) throws NotFoundException, TooManyAttemptsException {
+    /**
+     * Sorts courses by name (alphabetically).
+     */
+    public static List<Course> sortCoursesByName(Collection<Course> courses) {
+        return courses.stream()
+                .sorted(Comparator.comparing(Course::getName))
+                .toList();
+    }
+
+    /**
+     * Sorts courses by ECTS credits (descending - highest first).
+     */
+    public static List<Course> sortCoursesByECTS(Collection<Course> courses) {
+        return courses.stream()
+                .sorted(Comparator.comparingInt(Course::getECTS).reversed())
+                .toList();
+    }
+
+    /**
+     * Sorts courses by difficulty level (BEGINNER to EXPERT).
+     */
+    public static List<Course> sortCoursesByLevel(Collection<Course> courses) {
+        return courses.stream()
+                .sorted(Comparator.comparing(c -> c.getLevel().getDifficulty()))
+                .toList();
+    }
+
+    /**
+     * Sorts courses by enrollment count (descending).
+     */
+    public static List<Course> sortCoursesByEnrollment(Collection<Course> courses) {
+        return courses.stream()
+                .sorted(Comparator.comparingInt(Course::getEnrollmentCount).reversed())
+                .toList();
+    }
+
+    /**
+     * Groups courses by their difficulty level.
+     */
+    public static Map<CourseLevel, List<Course>> groupCoursesByLevel(
+            Collection<Course> courses) {
+        return courses.stream()
+                .collect(Collectors.groupingBy(Course::getLevel));
+    }
+
+    /**
+     * Groups courses by professor.
+     */
+    public static Map<String, List<Course>> groupCoursesByProfessor(
+            Collection<Course> courses) {
+        return courses.stream()
+                .collect(Collectors.groupingBy(c ->
+                        c.getProfessor().getFirstName() + " " + c.getProfessor().getLastName()));
+    }
+
+    /**
+     * Partitions courses by enrollment: popular (>= 3 students) vs unpopular.
+     */
+    public static Map<Boolean, List<Course>> partitionCoursesByPopularity(
+            Collection<Course> courses) {
+        return courses.stream()
+                .collect(Collectors.partitioningBy(c -> c.getEnrollmentCount() >= 3));
+    }
+
+    /**
+     * Groups courses by ECTS range.
+     */
+    public static Map<String, List<Course>> groupCoursesByECTSRange(
+            Collection<Course> courses) {
+        return courses.stream()
+                .collect(Collectors.groupingBy(c -> {
+                    int ects = c.getECTS();
+                    if (ects <= 3) return "Small (1-3 ECTS)";
+                    if (ects <= 6) return "Medium (4-6 ECTS)";
+                    return "Large (7+ ECTS)";
+                }));
+    }
+
+    public static void findCourseByName(Collection<Course> courses)
+            throws NotFoundException, TooManyAttemptsException {
         String searchName = InputHelper.readNonEmptyString("Insert course name: ");
 
         List<Course> matched = courses.stream()
-                .filter(c -> c != null && c.getName().equalsIgnoreCase(searchName))
+                .filter(c -> c.getName().equalsIgnoreCase(searchName))
                 .toList();
 
         if (matched.isEmpty()) throw new NotFoundException("Course not found.");
 
-        matched.forEach(c -> System.out.println(
-                "Course found: " + c.getName() +
-                        " (ECTS: " + c.getECTS() + ")" +
-                        " (Professor: " + c.getProfessor().getFirstName() + " " + c.getProfessor().getLastName() + ")"
-        ));
-        matched.forEach(c -> logger.info("Course found: {}", c.getName()));
-    }
-
-    // -------------------- Helpers --------------------
-
-    private static void addLessonToCourse(Course course, Lesson lesson) {
-        boolean duplicate = course.getLessons().stream()
-                .anyMatch(l -> l.getName().equalsIgnoreCase(lesson.getName()));
-
-        if (duplicate) throw new DuplicateEnrollmentException(
-                "Lesson " + lesson.getName() + " already exists in course " + course.getName());
-
-        course.addLesson(lesson);
+        matched.forEach(c -> {
+            System.out.println("Course found: " + c.getName() +
+                    " (ECTS: " + c.getECTS() + ")" +
+                    " (Level: " + c.getLevel() + ")" +
+                    " (Professor: " + c.getProfessor().getFirstName() + " " +
+                    c.getProfessor().getLastName() + ")");
+            logger.info("Course found: {}", c.getName());
+        });
     }
 
     private static Professor selectProfessor(List<User> users) throws TooManyAttemptsException {
@@ -80,18 +160,13 @@ public class CourseService {
 
         if (profs.isEmpty()) throw new IllegalStateException("No professors available!");
 
-        for (int i = 0; i < profs.size(); i++)
-            System.out.println((i + 1) + ": " + profs.get(i).getFirstName() + " " + profs.get(i).getLastName());
-
-        int chosen;
-        for (int attempt = 0; attempt < 3; attempt++) {
-            chosen = InputHelper.readPositiveInt("Which teacher (index): ");
-            if (chosen >= 1 && chosen <= profs.size()) return profs.get(chosen - 1);
-            System.out.println("Invalid index. Try again.");
-            logger.warn("Invalid teacher index: {}", chosen);
+        for (int i = 0; i < profs.size(); i++) {
+            System.out.println((i + 1) + ": " + profs.get(i).getFirstName() + " " +
+                    profs.get(i).getLastName());
         }
 
-        throw new TooManyAttemptsException("Failed to select a valid professor after 3 attempts.");
+        int chosen = InputHelper.readChoice("Which teacher (index): ", profs.size());
+        return profs.get(chosen);
     }
 
     private static List<Lesson> createLessons() throws TooManyAttemptsException {
@@ -103,15 +178,17 @@ public class CourseService {
 
             String name = InputHelper.readNonEmptyString("Name: ");
             int duration = InputHelper.readPositiveInt("Length (min): ");
+            LessonType type = InputHelper.readLessonType("Select lesson type: ");
 
             LocalDate date = readDate();
             LocalTime startTime = readTime();
 
-            Lesson lesson = new Lesson(name, duration);
+            Lesson lesson = new Lesson(name, duration, type);
             lesson.schedule(date, startTime.getHour(), startTime.getMinute(), duration);
             lessons.add(lesson);
 
-            logger.debug("Lesson created: {} {} {}:{} length {}min", name, date, startTime.getHour(), startTime.getMinute(), duration);
+            logger.debug("Lesson created: {} ({}) {} {}:{} length {}min",
+                    name, type, date, startTime.getHour(), startTime.getMinute(), duration);
         }
 
         return lessons;
