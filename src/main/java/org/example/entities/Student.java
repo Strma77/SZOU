@@ -1,79 +1,84 @@
 package org.example.entities;
 
+import org.example.enums.GradeType;
+import org.example.enums.Role;
 import org.example.exceptions.DuplicateEnrollmentException;
 import org.example.exceptions.LimitExceededException;
 import org.example.exceptions.NegativeValueException;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
- * Represents a student with course enrollment capabilities.
- * <p>
- * Extends {@link User} with enrolled courses tracking and enrollment limit enforcement.
- * Uses the Builder pattern inherited from {@link User.UserBuilder}.
+ * Represents a student with course enrollment capabilities and GPA tracking.
  */
-public class Student extends User{
+public class Student extends User {
 
     private final Set<String> enrolledCourses;
     private final int maxCourses;
+    private final Map<String, GradeType> courseGrades;
 
-    /**
-     * Constructs a student from the provided builder.
-     *
-     * @param builder the builder containing student data (not null)
-     */
     protected Student(StudentBuilder builder){
         super(builder);
-        this.enrolledCourses = new HashSet<>();
+        this.enrolledCourses = new LinkedHashSet<>();
         this.maxCourses = builder.maxCourses;
+        this.courseGrades = new HashMap<>();
     }
 
-    /**
-     * Enrolls the student in a course by adding the course name to enrolled courses.
-     * <p>
-     * No duplicate checking is performed - only enforces maximum course limit.
-     *
-     * @param courseName the name of the course to enroll in (not null)
-     * @throws DuplicateEnrollmentException if student has reached maximum course limit
-     */
     public void enrollCourses(String courseName){
-        if(enrolledCourses.contains(courseName)) throw new DuplicateEnrollmentException("Student " + getFirstName() + " " + getLastName() + " is already enrolled in the course: " + courseName);
-        if(enrolledCourses.size() >= maxCourses) throw new LimitExceededException("Student " + getFirstName() + " " + getLastName() + " has reached the maximum number of courses (" + maxCourses + ")!");
+        if(enrolledCourses.contains(courseName))
+            throw new DuplicateEnrollmentException("Student " + getFirstName() + " " +
+                    getLastName() + " is already enrolled in the course: " + courseName);
+
+        if(enrolledCourses.size() >= maxCourses)
+            throw new LimitExceededException("Student " + getFirstName() + " " +
+                    getLastName() + " has reached the maximum number of courses (" + maxCourses + ")!");
+
         enrolledCourses.add(courseName);
+        courseGrades.put(courseName, GradeType.NOT_GRADED);
     }
 
-    /**
-     * Returns the list of enrolled course names.
-     *
-     * @return read-only list of course names
-     */
-    public Set<String> getEnrolledCourses(){ return Collections.unmodifiableSet(enrolledCourses); }
+    public void setGrade(String courseName, GradeType grade) {
+        if (!enrolledCourses.contains(courseName)) {
+            throw new IllegalArgumentException("Student is not enrolled in course: " + courseName);
+        }
+        courseGrades.put(courseName, grade);
+    }
 
-    /**
-     * Returns the current number of enrolled courses.
-     *
-     * @return count of enrolled courses
-     */
-    public int getCourseCount(){ return enrolledCourses.size();}
+    public GradeType getGrade(String courseName) {
+        return courseGrades.getOrDefault(courseName, GradeType.NOT_GRADED);
+    }
 
-    /**
-     * Builder class for constructing {@link Student} instances.
-     * <p>
-     * Extends {@link User.UserBuilder} and adds enrollment limit configuration.
-     */
-    public static class StudentBuilder extends User.UserBuilder{
-        private int maxCourses = 5; // safe default
+    public double calculateGPA() {
+        List<GradeType> validGrades = courseGrades.values().stream()
+                .filter(g -> g != GradeType.NOT_GRADED && g != GradeType.INCOMPLETE)
+                .toList();
 
-        /**
-         * Constructs a builder with required student fields.
-         *
-         * @param firstName the student's first name (not null)
-         * @param lastName the student's last name (not null)
-         * @param ID the student's unique identifier
-         */
-        public StudentBuilder(String firstName, String lastName, int ID){ super(firstName, lastName, ID); }
+        if (validGrades.isEmpty()) return 0.0;
+
+        double sum = validGrades.stream()
+                .mapToDouble(GradeType::getGradePoint)
+                .sum();
+
+        return sum / validGrades.size();
+    }
+
+    public Set<String> getEnrolledCourses(){
+        return Collections.unmodifiableSet(enrolledCourses);
+    }
+
+    public Map<String, GradeType> getCourseGrades() {
+        return Collections.unmodifiableMap(courseGrades);
+    }
+
+    public int getCourseCount(){ return enrolledCourses.size(); }
+
+    public static class StudentBuilder extends User.UserBuilder {
+        private int maxCourses = 5;
+
+        public StudentBuilder(String firstName, String lastName, int ID){
+            super(firstName, lastName, ID);
+            this.role = Role.STUDENT;
+        }
 
         @Override
         public StudentBuilder username(String username) {
@@ -93,24 +98,13 @@ public class Student extends User{
             return this;
         }
 
-        /**
-         * Sets the maximum allowed course enrollments per Student.
-         *
-         * @param maxCourses the maximum course limit (must be positive)
-         * @return this builder for method chaining
-         * @throws NegativeValueException if maxCourses is zero or negative
-         */
         public StudentBuilder maxCourses(int maxCourses){
-            if (maxCourses <= 0 ) throw new NegativeValueException("maxCourses variable must be a positive number!");
+            if (maxCourses <= 0)
+                throw new NegativeValueException("maxCourses variable must be a positive number!");
             this.maxCourses = maxCourses;
             return this;
         }
 
-        /**
-         * Builds and returns a new {@link Student} instance.
-         *
-         * @return newly constructed student
-         */
         @Override
         public Student build(){ return new Student(this); }
     }

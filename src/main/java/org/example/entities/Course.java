@@ -1,16 +1,12 @@
 package org.example.entities;
 
+import org.example.enums.CourseLevel;
 import org.example.exceptions.DuplicateEnrollmentException;
 import org.example.exceptions.LimitExceededException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
- * Represents an academic course with lessons, professor assignment, and ECTS credits.
- * <p>
- * A course contains a fixed-size array of lessons and tracks the assigned professor.
- * Lessons can be added up to the maximum capacity specified during construction.
+ * Represents an academic course with lessons, professor, ECTS credits, and difficulty level.
  */
 public class Course {
 
@@ -19,25 +15,16 @@ public class Course {
     private final List<Lesson> lessons;
     private final int ECTS;
     private final int maxLessons;
+    private final CourseLevel level;
+    private final List<Student> enrolledStudents;
 
-    /**
-     * Constructs a course with the specified properties.
-     *
-     * @param name the course name (not null)
-     * @param professor the assigned professor (not null)
-     * @param maxLessons the maximum number of lessons allowed
-     * @param ECTS the ECTS credit value
-     */
-    public Course(String name, Professor professor, int maxLessons, int ECTS) {
+    public Course(String name, Professor professor, int maxLessons, int ECTS, CourseLevel level) {
         if (name == null || name.isBlank())
             throw new IllegalArgumentException("Course name cannot be empty.");
-
         if (professor == null)
             throw new IllegalArgumentException("Course must have an assigned professor.");
-
         if (maxLessons <= 0)
             throw new IllegalArgumentException("maxLessons must be positive.");
-
         if (ECTS <= 0)
             throw new IllegalArgumentException("ECTS must be positive.");
 
@@ -46,71 +33,65 @@ public class Course {
         this.maxLessons = maxLessons;
         this.lessons = new ArrayList<>();
         this.ECTS = ECTS;
+        this.level = Objects.requireNonNull(level, "Course level cannot be null");
+        this.enrolledStudents = new ArrayList<>();
     }
 
-    /**
-     * Adds a lesson to this course.
-     * <p>
-     * If maximum lesson capacity is reached, prints a warning but does not throw exception.
-     *
-     * @param lesson the lesson to add (not null)
-     */
     public void addLesson(Lesson lesson){
         Objects.requireNonNull(lesson, "Lesson cannot be null.");
 
         if (lessons.stream().anyMatch(l -> l.getName().equalsIgnoreCase(lesson.getName())))
-            throw new DuplicateEnrollmentException("Lesson " + lesson.getName() + " already exists in course " + name + ".");
+            throw new DuplicateEnrollmentException("Lesson " + lesson.getName() +
+                    " already exists in course " + name + ".");
 
         if (lessons.size() >= maxLessons)
-            throw new LimitExceededException("Course " + name + " has reached the max number of lessons (" + maxLessons + ").");
+            throw new LimitExceededException("Course " + name +
+                    " has reached the max number of lessons (" + maxLessons + ").");
 
         lessons.add(lesson);
     }
 
-    /**
-     * Returns the course name.
-     *
-     * @return course name
-     */
+    public void enrollStudent(Student student) {
+        Objects.requireNonNull(student, "Student cannot be null");
+        if (!enrolledStudents.contains(student)) {
+            enrolledStudents.add(student);
+        }
+    }
+
     public String getName() { return name; }
-
-    /**
-     * Returns the assigned professor.
-     *
-     * @return professor teaching this course
-     */
     public Professor getProfessor() { return professor; }
-
-    /**
-     * Returns the array of lessons.
-     *
-     * @return lesson array (may contain null elements)
-     */
-    public List<Lesson> getLessons() { return lessons; }
-
-    /**
-     * Returns the ECTS credit value.
-     *
-     * @return ECTS credits
-     */
+    public List<Lesson> getLessons() { return Collections.unmodifiableList(lessons); }
     public int getECTS() { return ECTS; }
+    public CourseLevel getLevel() { return level; }
+    public List<Student> getEnrolledStudents() {
+        return Collections.unmodifiableList(enrolledStudents);
+    }
+    public int getEnrollmentCount() { return enrolledStudents.size(); }
 
-    /**
-     * Returns formatted string with course details including lessons.
-     * <p>
-     * Prints decorative separators to console as side effect.
-     *
-     * @return formatted multi-line string with course information
-     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Course course)) return false;
+        return name.equals(course.name) && professor.equals(course.professor);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, professor);
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         System.out.println("====================");
-        sb.append("Course: ").append(name).append("\n");
-        sb.append("Profesor: ").append(professor.getFirstName()).append(" ").append(professor.getLastName()).append("\n");
-        sb.append("Lekcije:\n");
+        sb.append("Course: ").append(name).append(" [").append(level).append("]\n");
+        sb.append("Professor: ").append(professor.getFirstName()).append(" ")
+                .append(professor.getLastName()).append("\n");
+        sb.append("ECTS: ").append(ECTS).append("\n");
+        sb.append("Enrolled Students: ").append(enrolledStudents.size()).append("\n");
+        sb.append("Lessons:\n");
         for (Lesson l : lessons) {
-            sb.append("-").append(l.getName()).append("\n");
+            sb.append("  - ").append(l.getName()).append(" (").append(l.getType()).append(")\n");
         }
         System.out.println("====================\n");
         return sb.toString();
