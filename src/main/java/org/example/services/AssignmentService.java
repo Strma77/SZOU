@@ -48,8 +48,6 @@ public class AssignmentService {
                 submission.getAssignment().getMaxPoints());
     }
 
-    // ==================== STREAM OPERATIONS ====================
-
     /**
      * Groups submissions by assignment.
      */
