@@ -10,7 +10,6 @@ import org.example.exceptions.TooManyAttemptsException;
 import org.example.utils.InputHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -60,7 +59,6 @@ public class EnrollmentService {
         return enrollments;
     }
 
-    // ==================== SORTING WITH COMPARATORS ====================
 
     /**
      * Sorts enrollments by student name.
@@ -127,7 +125,6 @@ public class EnrollmentService {
                 .collect(Collectors.partitioningBy(Enrollment::isPassed));
     }
 
-    // ==================== HELPERS ====================
 
     private static Course selectCourse(List<Course> courses) throws TooManyAttemptsException {
         System.out.println("Available courses:");

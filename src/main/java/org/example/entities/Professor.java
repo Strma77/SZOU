@@ -41,6 +41,8 @@ public class Professor extends User {
         return teachingCourses.size();
     }
 
+    public int getMaxCourses(){ return maxCourses; }
+
     public static class ProfessorBuilder extends User.UserBuilder {
         private int maxCourses;
 

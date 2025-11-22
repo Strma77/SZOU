@@ -27,6 +27,8 @@ public class Main {
             List<Enrollment> enrollments = EnrollmentService.enrollStudents(
                     students, courses, UserService.getMaxCoursesOvr());
 
+            enrollments = GradingService.assignRandomGrades(enrollments);
+
             DemonstrationService.demonstrateAll(students, professors, courses, enrollments);
 
             SearchService.searchLoop(students, professors, courses);

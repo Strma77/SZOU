@@ -72,6 +72,8 @@ public class Student extends User {
 
     public int getCourseCount(){ return enrolledCourses.size(); }
 
+    public int getMaxCourses(){ return maxCourses; }
+
     public static class StudentBuilder extends User.UserBuilder {
         private int maxCourses = 5;
 

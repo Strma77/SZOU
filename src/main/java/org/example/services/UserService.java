@@ -64,7 +64,7 @@ public class UserService {
                     .build());
         }
         maxCoursesOvr = students.stream()
-                .mapToInt(Student::getCourseCount)
+                .mapToInt(Student::getMaxCourses)
                 .sum();
         return students;
     }
