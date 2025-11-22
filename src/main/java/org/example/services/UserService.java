@@ -16,7 +16,6 @@ import java.util.stream.Stream;
 public class UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
-    private static int maxCoursesOvr = 0;
 
     public static Set<Professor> createProfessors() throws TooManyAttemptsException {
         Set<Professor> professors = new LinkedHashSet<>();
@@ -63,9 +62,6 @@ public class UserService {
                     .maxCourses(maxC)
                     .build());
         }
-        maxCoursesOvr = students.stream()
-                .mapToInt(Student::getMaxCourses)
-                .sum();
         return students;
     }
 
@@ -203,9 +199,5 @@ public class UserService {
                     " (Teaching " + p.getCourseCount() + " courses)");
             logger.info("Professor found: {} {}", p.getFirstName(), p.getLastName());
         });
-    }
-
-    public static int getMaxCoursesOvr(){
-        return maxCoursesOvr;
     }
 }

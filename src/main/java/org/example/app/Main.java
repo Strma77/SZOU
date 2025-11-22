@@ -25,7 +25,7 @@ public class Main {
             List<Course> courses = CourseService.createCourses(cNum, users);
 
             List<Enrollment> enrollments = EnrollmentService.enrollStudents(
-                    students, courses, UserService.getMaxCoursesOvr());
+                    students, courses);
 
             enrollments = GradingService.assignRandomGrades(enrollments);
 
@@ -46,6 +46,9 @@ public class Main {
         } catch (Exception e) {
             logger.error("❌ Unexpected error: {}", e.getMessage(), e);
             System.err.println("An unexpected error occurred: " + e.getMessage());
+        }
+        finally{
+            InputHelper.closeScanner();
         }
     }
 }

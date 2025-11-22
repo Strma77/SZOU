@@ -29,15 +29,14 @@ public class EnrollmentService {
         return new Enrollment(student, course, semester);
     }
 
-    public static List<Enrollment> enrollStudents(Set<Student> students, List<Course> courses,
-                                                  int maxCourses) throws TooManyAttemptsException {
+    public static List<Enrollment> enrollStudents(Set<Student> students, List<Course> courses) throws TooManyAttemptsException {
         List<Enrollment> enrollments = new ArrayList<>();
 
         for (Student student : students) {
             System.out.println("\n--- Enroll courses for: " + student.getFirstName() + " " +
                     student.getLastName() + " ---");
 
-            for (int i = 0; i < maxCourses; i++) {
+            for (int i = 0; i < student.getMaxCourses(); i++) {
                 System.out.println("\nCourse #" + (i + 1) + " for " + student.getFirstName());
 
                 Course selectedCourse = selectCourse(courses);

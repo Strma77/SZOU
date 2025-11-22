@@ -16,7 +16,11 @@ import java.util.Scanner;
  */
 public class InputHelper {
 
-    public static final Scanner scanner = new Scanner(System.in);
+    private static final Scanner scanner = new Scanner(System.in);
+
+    public static void closeScanner(){
+        if (scanner != null) scanner.close();
+    }
 
     public static int readPositiveInt(String msg) throws TooManyAttemptsException {
         int attempts = 0;
