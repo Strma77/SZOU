@@ -6,8 +6,10 @@ import org.example.utils.InputHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.function.Predicate;
 
 /**
  * Service for managing users (professors and students).
@@ -146,21 +148,29 @@ public class UserService {
     /**
      * Gets the first student (by insertion order).
      */
-    public static Student getFirstStudent(Set<Student> students) {
+    public static Optional<Student> getFirstStudent(Set<Student> students) {
         if (students instanceof SequencedSet<Student> seq) {
-            return seq.getFirst();
+            try{
+                return Optional.of(seq.getFirst());
+            }catch(NoSuchElementException e){
+                return Optional.empty();
+            }
         }
-        return students.stream().findFirst().orElse(null);
+        return students.stream().findFirst();
     }
 
     /**
      * Gets the last student (by insertion order).
      */
-    public static Student getLastStudent(Set<Student> students) {
+    public static Optional<Student> getLastStudent(Set<Student> students) {
         if (students instanceof SequencedSet<Student> seq) {
-            return seq.getLast();
+            try {
+                return Optional.of(seq.getLast());
+            }catch(NoSuchElementException e){
+                return Optional.empty();
+            }
         }
-        return students.stream().reduce((first, second) -> second).orElse(null);
+        return students.stream().reduce((first, second) -> second);
     }
 
     public static void findStudentByFirstName(Collection<Student> students)
@@ -199,5 +209,59 @@ public class UserService {
                     " (Teaching " + p.getCourseCount() + " courses)");
             logger.info("Professor found: {} {}", p.getFirstName(), p.getLastName());
         });
+    }
+
+    public static <T> List<T> filterElements(Collection<? extends T> elements, Predicate<? super T> predicate){
+        return elements.stream()
+                .filter(predicate)
+                .collect(Collectors.toList());
+    }
+
+    public static List<Student> filterStudentsByGPA(Collection<Student> students, double minGPA){
+        return filterElements(students, s -> s.calculateGPA() >= minGPA);
+    }
+
+    public static List<Student> filterStudentByCourseCount(Collection<Student> students, int minCourses){
+        return filterElements(students, s -> s.getCourseCount() >= minCourses);
+    }
+
+    public static <T, R> List<R> mapElements(Collection<? extends T> elements, Function<? super T, ? extends R> mapper){
+        return elements.stream()
+                .map(mapper)
+                .collect(Collectors.toList());
+    }
+
+    public static List<String> getStudentNames(Collection<Student> students){
+        return mapElements(students, s-> s.getFirstName() + " " + s.getLastName());
+    }
+
+    public static List<String> getStudentEmails(Collection<Student> students){
+        return mapElements(students, Student::getEmail);
+    }
+
+    public static <T extends Comparable<T>> Optional<T> findMax(Collection<T> elements){
+        return elements.stream()
+                .max(Comparator.naturalOrder());
+    }
+
+    public static Optional<Student> findTopStudent(Collection<Student> students){
+        return students.stream()
+                .max(Comparator.comparingDouble(Student::calculateGPA));
+    }
+
+    public static double calculateTotalGPA(Collection<Student> students){
+        return students.stream()
+                .mapToDouble(Student::calculateGPA)
+                .reduce(0.0, Double::sum);
+    }
+
+    public static <T> void addAllElements(Collection<? super T> dest, Collection<? extends T> src){
+        dest.addAll(src);
+    }
+
+    public static <T extends User & Comparable<T>> List<T> sortUsers(Collection<T> users){
+        return users.stream()
+                .sorted()
+                .collect(Collectors.toList());
     }
 }

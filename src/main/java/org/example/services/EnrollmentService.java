@@ -11,6 +11,8 @@ import org.example.utils.InputHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -135,5 +137,80 @@ public class EnrollmentService {
 
         int choice = InputHelper.readChoice("Choose course ID: ", courses.size());
         return courses.get(choice);
+    }
+
+    public static <T> List<T> filterEnrollments(Collection<? extends T> enrollments,
+                                                Predicate<? super T> predicate) {
+        return enrollments.stream()
+                .filter(predicate)
+                .collect(Collectors.toList());
+    }
+
+    public static List<Enrollment> filterEnrollmentsByStudent(
+            Collection<Enrollment> enrollments,
+            Student student) {
+        return filterEnrollments(enrollments, e -> e.student().equals(student));
+    }
+
+    public static List<Enrollment> filterEnrollmentsByCourse(
+            Collection<Enrollment> enrollments,
+            Course course) {
+        return filterEnrollments(enrollments, e -> e.course().equals(course));
+    }
+
+    public static List<Enrollment> filterEnrollmentsBySemester(
+            Collection<Enrollment> enrollments,
+            Semester semester) {
+        return filterEnrollments(enrollments, e -> e.semester() == semester);
+    }
+
+    public static List<Enrollment> filterActiveEnrollments(Collection<Enrollment> enrollments) {
+        return filterEnrollments(enrollments, Enrollment::isActive);
+    }
+
+    public static List<Enrollment> filterPassedEnrollments(Collection<Enrollment> enrollments) {
+        return filterEnrollments(enrollments, Enrollment::isPassed);
+    }
+
+    public static List<String> getEnrolledCourseNames(Collection<Enrollment> enrollments) {
+        return enrollments.stream()
+                .map(e -> e.course().getName())
+                .collect(Collectors.toList());
+    }
+
+    public static Optional<Enrollment> findTopEnrollment(Collection<Enrollment> enrollments) {
+        return enrollments.stream()
+                .filter(Enrollment::isPassed)
+                .max(Comparator.comparingDouble(e -> e.grade().getGradePoint()));
+    }
+
+    public static long countByStatus(Collection<Enrollment> enrollments, EnrollmentStatus status) {
+        return enrollments.stream()
+                .filter(e -> e.status() == status)
+                .count();
+    }
+
+    public static double calculateCompletionRate(Collection<Enrollment> enrollments) {
+        long total = enrollments.size();
+        if (total == 0) return 0.0;
+
+        long completed = enrollments.stream()
+                .filter(e -> e.status() == EnrollmentStatus.COMPLETED)
+                .count();
+
+        return (completed * 100.0) / total;
+    }
+
+    public static <T, R> List<R> transformEnrollments(
+            Collection<? extends T> enrollments,
+            Function<? super T, ? extends R> transformer) {
+        return enrollments.stream()
+                .map(transformer)
+                .collect(Collectors.toList());
+    }
+
+    public static List<String> getStudentNamesFromEnrollments(Collection<Enrollment> enrollments) {
+        return transformEnrollments(enrollments,
+                e -> e.student().getFirstName() + " " + e.student().getLastName());
     }
 }

@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -139,5 +140,117 @@ public class GradingService {
                         Enrollment::grade,
                         Collectors.counting()
                 ));
+    }
+
+    public static <T> List<T> filterStudents(Collection<? extends T> students,
+                                             Predicate<? super T> predicate) {
+        return students.stream()
+                .filter(predicate)
+                .collect(Collectors.toList());
+    }
+
+    public static List<Student> filterStudentsByMinGPA(Collection<Student> students, double minGPA) {
+        return filterStudents(students, s -> s.calculateGPA() >= minGPA);
+    }
+
+    public static List<Student> filterStudentsByMaxGPA(Collection<Student> students, double maxGPA) {
+        return filterStudents(students, s -> s.calculateGPA() <= maxGPA);
+    }
+
+    public static List<Student> filterStudentsByGPARange(Collection<Student> students,
+                                                         double minGPA, double maxGPA) {
+        return filterStudents(students, s -> {
+            double gpa = s.calculateGPA();
+            return gpa >= minGPA && gpa <= maxGPA;
+        });
+    }
+
+    public static Optional<Student> findTopStudentByGPA(Collection<Student> students) {
+        return students.stream()
+                .max(Comparator.comparingDouble(Student::calculateGPA));
+    }
+
+    public static Optional<Student> findLowestStudentByGPA(Collection<Student> students) {
+        return students.stream()
+                .filter(s -> s.calculateGPA() > 0.0)
+                .min(Comparator.comparingDouble(Student::calculateGPA));
+    }
+
+    public static double calculateMedianGPA(Collection<Student> students) {
+        List<Double> gpas = students.stream()
+                .map(Student::calculateGPA)
+                .filter(gpa -> gpa > 0.0)
+                .sorted()
+                .toList();
+
+        if (gpas.isEmpty()) return 0.0;
+
+        int size = gpas.size();
+        if (size % 2 == 0) {
+            return (gpas.get(size / 2 - 1) + gpas.get(size / 2)) / 2.0;
+        } else {
+            return gpas.get(size / 2);
+        }
+    }
+
+    public static long countStudentsByGradeCategory(Collection<Student> students, String category) {
+        Map<String, List<Student>> grouped = groupStudentsByGPARange(students);
+        return grouped.getOrDefault(category, Collections.emptyList()).size();
+    }
+
+    public static List<Double> getAllGPAs(Collection<Student> students) {
+        return students.stream()
+                .map(Student::calculateGPA)
+                .filter(gpa -> gpa > 0.0)
+                .collect(Collectors.toList());
+    }
+
+    public static double calculateGPAStandardDeviation(Collection<Student> students) {
+        List<Double> gpas = getAllGPAs(students);
+        if (gpas.isEmpty()) return 0.0;
+
+        double mean = calculateAverageGPA(students);
+        double variance = gpas.stream()
+                .mapToDouble(gpa -> Math.pow(gpa - mean, 2))
+                .average()
+                .orElse(0.0);
+
+        return Math.sqrt(variance);
+    }
+
+    public static <T> Map<Boolean, List<T>> partitionBy(
+            Collection<? extends T> elements,
+            Predicate<? super T> predicate) {
+        return elements.stream()
+                .collect(Collectors.partitioningBy(predicate));
+    }
+
+    public static Map<Boolean, List<Student>> partitionStudentsByPassingGPA(
+            Collection<Student> students, double passingGPA) {
+        return partitionBy(students, s -> s.calculateGPA() >= passingGPA);
+    }
+
+    public static <T extends Comparable<T>> List<T> sortDescending(Collection<? extends T> elements) {
+        return elements.stream()
+                .sorted(Comparator.reverseOrder())
+                .collect(Collectors.toList());
+    }
+
+    public static boolean anyStudentAboveGPA(Collection<Student> students, double threshold) {
+        return students.stream()
+                .anyMatch(s -> s.calculateGPA() >= threshold);
+    }
+
+    public static boolean allStudentsPassing(Collection<Student> students, double passingGPA) {
+        return students.stream()
+                .allMatch(s -> s.calculateGPA() >= passingGPA);
+    }
+
+    public static long countStudentsWithGrade(Collection<Student> students,
+                                              String courseName,
+                                              GradeType grade) {
+        return students.stream()
+                .filter(s -> s.getGrade(courseName) == grade)
+                .count();
     }
 }

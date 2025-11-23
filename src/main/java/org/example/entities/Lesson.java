@@ -4,6 +4,7 @@ import org.example.enums.LessonType;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Represents a lesson with name, duration, type, and optional scheduling information.
@@ -34,7 +35,7 @@ public non-sealed class Lesson implements Schedulable {
     }
 
     @Override
-    public LocalDateTime getStartTime(){ return startTime; }
+    public Optional<LocalDateTime> getStartTime(){ return Optional.ofNullable(startTime); }
 
     @Override
     public int getDurationMinutes(){ return lengthMinutes; }

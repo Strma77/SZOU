@@ -13,6 +13,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -218,5 +219,61 @@ public class CourseService {
             }
         }
         throw new TooManyAttemptsException("Invalid time entered 3 times.");
+    }
+
+    public static <T> List<T> filterCourses(Collection<? extends T> courses,
+                                            Predicate<? super T> predicate) {
+        return courses.stream()
+                .filter(predicate)
+                .collect(Collectors.toList());
+    }
+
+    public static List<Course> filterCoursesByMinECTS(Collection<Course> courses, int minECTS) {
+        return filterCourses(courses, c -> c.getECTS() >= minECTS);
+    }
+
+    public static List<Course> filterCoursesByLevel(Collection<Course> courses, CourseLevel level) {
+        return filterCourses(courses, c -> c.getLevel() == level);
+    }
+
+    public static List<Course> filterCoursesByProfessor(Collection<Course> courses, Professor professor) {
+        return filterCourses(courses, c -> c.getProfessor().equals(professor));
+    }
+
+    public static List<String> getCourseNames(Collection<Course> courses) {
+        return courses.stream()
+                .map(Course::getName)
+                .collect(Collectors.toList());
+    }
+
+    public static Optional<Course> findMostPopularCourse(Collection<Course> courses) {
+        return courses.stream()
+                .max(Comparator.comparingInt(Course::getEnrollmentCount));
+    }
+
+    public static int calculateTotalECTS(Collection<Course> courses) {
+        return courses.stream()
+                .mapToInt(Course::getECTS)
+                .reduce(0, Integer::sum);
+    }
+
+    public static double calculateAverageEnrollment(Collection<Course> courses) {
+        return courses.stream()
+                .mapToInt(Course::getEnrollmentCount)
+                .average()
+                .orElse(0.0);
+    }
+
+    public static <T extends Comparable<T>> Optional<T> findMaximum(Collection<T> elements) {
+        return elements.stream()
+                .max(Comparator.naturalOrder());
+    }
+
+    public static boolean anyCourseMatches(Collection<Course> courses, Predicate<Course> predicate) {
+        return courses.stream().anyMatch(predicate);
+    }
+
+    public static boolean allCoursesMatch(Collection<Course> courses, Predicate<Course> predicate) {
+        return courses.stream().allMatch(predicate);
     }
 }

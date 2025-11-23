@@ -22,6 +22,8 @@ public class DemonstrationService {
         demonstrateSorting(students, professors, courses, enrollments);
         demonstrateStreamOperations(students, courses, enrollments);
         demonstrateSequencedCollections(students, professors);
+        demonstrateOptional(students, courses);
+        demonstrateAssignments(courses, students);
     }
 
     /**
@@ -144,18 +146,21 @@ public class DemonstrationService {
         System.out.println("=".repeat(50));
 
         // Get first and last student
-        Student firstStudent = UserService.getFirstStudent(students);
-        Student lastStudent = UserService.getLastStudent(students);
+        Optional<Student> firstStudent = UserService.getFirstStudent(students);
+        Optional<Student> lastStudent = UserService.getLastStudent(students);
 
-        System.out.println("\n1️⃣  First student enrolled: " +
-                (firstStudent != null ? firstStudent.getFirstName() + " " +
-                        firstStudent.getLastName() : "None"));
+        System.out.println("\n1️⃣  First student enrolled: ");
+        firstStudent.ifPresentOrElse(
+                s -> System.out.println("   " + s.getFirstName() + " " + s.getLastName()),
+                () -> System.out.println("   None")
+        );
 
-        System.out.println("2️⃣  Last student enrolled: " +
-                (lastStudent != null ? lastStudent.getFirstName() + " " +
-                        lastStudent.getLastName() : "None"));
+        System.out.println("\n2️⃣  Last student enrolled: ");
+        lastStudent.ifPresentOrElse(
+                s -> System.out.println("   " + s.getFirstName() + " " + s.getLastName()),
+                () -> System.out.println("   None")
+        );
 
-        // Demonstrate reversed() on LinkedHashSet
         System.out.println("\n3️⃣  Students in reverse order:");
         if (students instanceof SequencedSet<Student> seq) {
             seq.reversed().stream()
@@ -163,6 +168,7 @@ public class DemonstrationService {
                     .forEach(s -> System.out.println("   - " + s.getFirstName() + " " +
                             s.getLastName()));
         }
+
 
         // Demonstrate with professors
         System.out.println("\n4️⃣  Professors in insertion order:");
@@ -172,5 +178,138 @@ public class DemonstrationService {
                         p.getLastName()));
 
         logger.info("Sequenced collections demonstration completed");
+    }
+
+    private static void demonstrateOptional(Set<Student> students, List<Course> courses) {
+        System.out.println("\n" + "=".repeat(50));
+        System.out.println("🎁 DEMONSTRATION: OPTIONAL<T> USAGE");
+        System.out.println("=".repeat(50));
+
+        // 1. Finding top student
+        System.out.println("\n1️⃣  Finding top student by GPA:");
+        Optional<Student> topStudent = GradingService.findTopStudentByGPA(students);
+        topStudent.ifPresentOrElse(
+                s -> System.out.println("   Top Student: " + s.getFirstName() + " " +
+                        s.getLastName() + " (GPA: " + String.format("%.2f", s.calculateGPA()) + ")"),
+                () -> System.out.println("   No students found")
+        );
+
+        // 2. Finding most popular course
+        System.out.println("\n2️⃣  Finding most popular course:");
+        Optional<Course> popularCourse = CourseService.findMostPopularCourse(courses);
+        String courseName = popularCourse
+                .map(c -> c.getName() + " (" + c.getEnrollmentCount() + " students)")
+                .orElse("No courses available");
+        System.out.println("   " + courseName);
+
+        // 3. Optional chaining example
+        System.out.println("\n3️⃣  Optional chaining - Get first student's email:");
+        String email = UserService.getFirstStudent(students)
+                .map(Student::getEmail)
+                .orElse("no-email@example.com");
+        System.out.println("   " + email);
+
+        // 4. Optional with filter
+        System.out.println("\n4️⃣  Optional with filter - Find honor student (GPA >= 4.0):");
+        UserService.getFirstStudent(students)
+                .filter(s -> s.calculateGPA() >= 4.0)
+                .ifPresentOrElse(
+                        s -> System.out.println("   Honor Student: " + s.getFirstName() + " " + s.getLastName()),
+                        () -> System.out.println("   No honor students in first position")
+                );
+
+        // 5. Optional orElseThrow
+        System.out.println("\n5️⃣  Optional orElseThrow - Safely get top student:");
+        try {
+            Student top = GradingService.findTopStudentByGPA(students)
+                    .orElseThrow(() -> new NoSuchElementException("No students available"));
+            System.out.println("   Found: " + top.getFirstName() + " " + top.getLastName());
+        } catch (NoSuchElementException e) {
+            System.out.println("   " + e.getMessage());
+        }
+
+        // 6. Optional flatMap example (if we had nested Optionals)
+        System.out.println("\n6️⃣  Optional map vs flatMap:");
+        System.out.println("   Using map: " +
+                UserService.getFirstStudent(students)
+                        .map(s -> s.getFirstName() + " " + s.getLastName())
+                        .orElse("Unknown"));
+
+        logger.info("Optional demonstration completed");
+    }
+
+    private static void demonstrateAssignments(List<Course> courses, Set<Student> students) {
+        if (courses.isEmpty() || students.isEmpty()) return;
+
+        System.out.println("\n" + "=".repeat(50));
+        System.out.println("📝 DEMONSTRATION: ASSIGNMENTS & SUBMISSIONS (Optional<T>)");
+        System.out.println("=".repeat(50));
+
+        Course course = courses.getFirst();
+        List<Student> studentList = new ArrayList<>(students);
+
+        // 1. Create assignment
+        Assignment assignment = AssignmentService.createAssignment(
+                "Lambda Expressions Lab",
+                "Implement functional programming concepts",
+                course,
+                100,
+                java.time.LocalDateTime.now().plusDays(7)
+        );
+
+        System.out.println("\n1️⃣  Created assignment: " + assignment.getTitle());
+        System.out.println("   Max Points: " + assignment.getMaxPoints());
+        System.out.println("   Due Date: " + assignment.getDueDate().toLocalDate());
+
+        // 2. Create submissions
+        List<Submission> submissions = new ArrayList<>();
+        for (int i = 0; i < Math.min(3, studentList.size()); i++) {
+            Student student = studentList.get(i);
+            Submission sub = AssignmentService.submitAssignment(
+                    student, assignment, "Solution by " + student.getFirstName()
+            );
+            submissions.add(sub);
+        }
+
+        System.out.println("\n2️⃣  Created " + submissions.size() + " submissions");
+
+        // 3. Grade some submissions (leave some ungraded to demonstrate Optional)
+        if (!submissions.isEmpty()) {
+            AssignmentService.gradeSubmission(submissions.get(0), 95, "Excellent!");
+            if (submissions.size() > 1) {
+                AssignmentService.gradeSubmission(submissions.get(1), 87, "Very good!");
+            }
+        }
+
+        // 4. Demonstrate Optional with getScore()
+        System.out.println("\n3️⃣  Demonstrating Optional<Integer> with scores:");
+        submissions.forEach(sub -> {
+            System.out.print("   " + sub.getStudent().getFirstName() + ": ");
+
+            // Using Optional properly
+            sub.getScore().ifPresentOrElse(
+                    score -> System.out.println(score + "/" + assignment.getMaxPoints() +
+                            " (" + String.format("%.1f", sub.getPercentage()) + "%)"),
+                    () -> System.out.println("Not graded yet")
+            );
+        });
+
+        // 5. Lambda operations on submissions
+        System.out.println("\n4️⃣  Lambda filtering - Graded submissions:");
+        long gradedCount = submissions.stream()
+                .filter(Submission::isGraded)
+                .count();
+        System.out.println("   Graded: " + gradedCount + "/" + submissions.size());
+
+        // 6. Find top submission using Optional
+        System.out.println("\n5️⃣  Finding top submission (Optional usage):");
+        AssignmentService.findTopSubmission(submissions)
+                .ifPresentOrElse(
+                        top -> System.out.println("   Top: " + top.getStudent().getFirstName() +
+                                " with " + top.getPercentage() + "%"),
+                        () -> System.out.println("   No graded submissions yet")
+                );
+
+        logger.info("Assignment demonstration completed");
     }
 }

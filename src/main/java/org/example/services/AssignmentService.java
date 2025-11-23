@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -109,5 +111,81 @@ public class AssignmentService {
                 .sorted(Comparator.comparingDouble(Submission::getPercentage).reversed())
                 .limit(limit)
                 .collect(Collectors.toList());
+    }
+
+    public static Optional<Submission> findTopSubmission(Collection<Submission> submissions) {
+        return submissions.stream()
+                .filter(Submission::isGraded)
+                .max(Comparator.comparingDouble(Submission::getPercentage));
+    }
+
+    public static <T extends Submission> List<T> filterSubmissions(
+            Collection<? extends T> submissions,
+            Predicate<? super T> predicate) {
+        return submissions.stream()
+                .filter(predicate)
+                .collect(Collectors.toList());
+    }
+
+    public static List<Submission> filterSubmissionsByMinScore(
+            Collection<Submission> submissions,
+            int minScore) {
+        return filterSubmissions(submissions,
+                s -> s.getScore().map(score -> score >= minScore).orElse(false));
+    }
+
+    public static List<Submission> filterSubmissionsByStudent(
+            Collection<Submission> submissions,
+            Student student) {
+        return filterSubmissions(submissions,
+                s -> s.getStudent().equals(student));
+    }
+
+    public static List<Integer> getAllGradedScores(Collection<Submission> submissions) {
+        return submissions.stream()
+                .map(Submission::getScore)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
+    }
+
+    public static double calculatePassRate(Collection<Submission> submissions, int passingScore) {
+        long total = submissions.stream()
+                .filter(Submission::isGraded)
+                .count();
+
+        if (total == 0) return 0.0;
+
+        long passed = submissions.stream()
+                .filter(Submission::isGraded)
+                .filter(s -> s.getScore()
+                        .map(score -> score >= passingScore)
+                        .orElse(false))
+                .count();
+
+        return (passed * 100.0) / total;
+    }
+
+    public static <T> long countMatching(Collection<? extends T> elements,
+                                         Predicate<? super T> predicate) {
+        return elements.stream()
+                .filter(predicate)
+                .count();
+    }
+
+    public static long countLateSubmissions(Collection<Submission> submissions) {
+        return countMatching(submissions, Submission::isLate);
+    }
+
+    public static <T, K> Map<K, List<T>> groupBy(
+            Collection<? extends T> elements,
+            Function<? super T, ? extends K> classifier) {
+        return elements.stream()
+                .collect(Collectors.groupingBy(classifier));
+    }
+
+    public static Map<String, List<Submission>> groupSubmissionsByLetterGrade(
+            Collection<Submission> submissions) {
+        return groupBy(submissions, s -> s.getLetterGrade().name());
     }
 }

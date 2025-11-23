@@ -1,6 +1,7 @@
 package org.example.entities;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * Defines scheduling capabilities for entities that can be scheduled at specific times.
@@ -25,7 +26,7 @@ public sealed interface Schedulable permits Lesson{
      *
      * @return the start LocalDateTime, or null if not scheduled
      */
-    LocalDateTime getStartTime();
+    Optional<LocalDateTime> getStartTime();
 
     /**
      * Returns the duration in minutes.

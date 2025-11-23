@@ -3,6 +3,7 @@ package org.example.entities;
 import org.example.enums.GradeType;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Represents a student's submission for an assignment.
@@ -29,7 +30,7 @@ public class Submission {
     public Assignment getAssignment() { return assignment; }
     public String getContent() { return content; }
     public LocalDateTime getSubmittedDate() { return submittedDate; }
-    public Integer getScore() { return score; }
+    public Optional<Integer> getScore() { return Optional.ofNullable(score); }
     public String getFeedback() { return feedback; }
 
     public void grade(int score, String feedback) {
@@ -43,8 +44,8 @@ public class Submission {
 
     public boolean isGraded() { return score != null; }
     public boolean isLate() { return submittedDate.isAfter(assignment.getDueDate()); }
-    public double getPercentage() { if (score == null) return -1; return (score * 100.0) / assignment.getMaxPoints(); }
-    public GradeType getLetterGrade() { if (score == null) return GradeType.NOT_GRADED; return GradeType.fromScore((int) getPercentage()); }
+    public double getPercentage() { return getScore().map(s -> (s * 100.0) / assignment.getMaxPoints()).orElse(-1.0); }
+    public GradeType getLetterGrade() { return getScore().map(s -> GradeType.fromScore((int) getPercentage())).orElse(GradeType.NOT_GRADED); }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
