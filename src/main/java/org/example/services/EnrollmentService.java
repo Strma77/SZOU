@@ -2,17 +2,14 @@ package org.example.services;
 
 import org.example.entities.*;
 import org.example.enums.EnrollmentStatus;
-import org.example.enums.GradeType;
-import org.example.entities.Enrollment;
 import org.example.enums.Semester;
+import org.example.exceptions.DuplicateEnrollmentException;
 import org.example.exceptions.LimitExceededException;
 import org.example.exceptions.TooManyAttemptsException;
 import org.example.utils.InputHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -31,7 +28,8 @@ public class EnrollmentService {
         return new Enrollment(student, course, semester);
     }
 
-    public static List<Enrollment> enrollStudents(Set<Student> students, List<Course> courses) throws TooManyAttemptsException {
+    public static List<Enrollment> enrollStudents(Set<Student> students, List<Course> courses)
+            throws TooManyAttemptsException {
         List<Enrollment> enrollments = new ArrayList<>();
 
         for (Student student : students) {
@@ -47,11 +45,13 @@ public class EnrollmentService {
                 try {
                     Enrollment enrollment = enrollStudent(student, selectedCourse, semester);
                     enrollments.add(enrollment);
-                } catch (LimitExceededException e) {
+                } catch (LimitExceededException | DuplicateEnrollmentException e) {
                     System.out.println("⚠️  " + e.getMessage());
-                    logger.warn("Student {} tried to enroll in too many courses: {}",
+                    logger.warn("Enrollment issue for {}: {}",
                             student.getFirstName(), e.getMessage());
-                    break;
+                    if (e instanceof  LimitExceededException) break;
+
+                    i--;
                 }
             }
         }
@@ -60,9 +60,9 @@ public class EnrollmentService {
         return enrollments;
     }
 
-
     /**
      * Sorts enrollments by student name.
+     * Demonstrates Comparator and lambda.
      */
     public static List<Enrollment> sortEnrollmentsByStudentName(
             Collection<Enrollment> enrollments) {
@@ -76,12 +76,14 @@ public class EnrollmentService {
      */
     public static List<Enrollment> sortEnrollmentsByGrade(Collection<Enrollment> enrollments) {
         return enrollments.stream()
-                .sorted(Comparator.comparingDouble((Enrollment e) -> e.grade().getGradePoint()).reversed())
+                .sorted(Comparator.comparingDouble((Enrollment e) ->
+                        e.grade().getGradePoint()).reversed())
                 .toList();
     }
 
     /**
      * Groups enrollments by semester.
+     * Demonstrates groupingBy collector.
      */
     public static Map<Semester, List<Enrollment>> groupEnrollmentsBySemester(
             Collection<Enrollment> enrollments) {
@@ -90,7 +92,7 @@ public class EnrollmentService {
     }
 
     /**
-     * Groups enrollments by status (ACTIVE, COMPLETED, DROPPED, etc.).
+     * Groups enrollments by status (ACTIVE, COMPLETED, etc.).
      */
     public static Map<EnrollmentStatus, List<Enrollment>> groupEnrollmentsByStatus(
             Collection<Enrollment> enrollments) {
@@ -99,26 +101,8 @@ public class EnrollmentService {
     }
 
     /**
-     * Partitions enrollments by completion status: completed vs active/pending.
-     */
-    public static Map<Boolean, List<Enrollment>> partitionEnrollmentsByCompletion(
-            Collection<Enrollment> enrollments) {
-        return enrollments.stream()
-                .collect(Collectors.partitioningBy(e ->
-                        e.status() == EnrollmentStatus.COMPLETED));
-    }
-
-    /**
-     * Groups enrollments by course.
-     */
-    public static Map<String, List<Enrollment>> groupEnrollmentsByCourse(
-            Collection<Enrollment> enrollments) {
-        return enrollments.stream()
-                .collect(Collectors.groupingBy(e -> e.course().getName()));
-    }
-
-    /**
      * Partitions enrollments by passing grade.
+     * Demonstrates partitioningBy collector.
      */
     public static Map<Boolean, List<Enrollment>> partitionEnrollmentsByPassing(
             Collection<Enrollment> enrollments) {
@@ -126,70 +110,20 @@ public class EnrollmentService {
                 .collect(Collectors.partitioningBy(Enrollment::isPassed));
     }
 
-
-    private static Course selectCourse(List<Course> courses) throws TooManyAttemptsException {
-        System.out.println("Available courses:");
-        for (int i = 0; i < courses.size(); i++) {
-            Course c = courses.get(i);
-            System.out.println((i + 1) + ": " + c.getName() + " (ECTS: " + c.getECTS() +
-                    ", Level: " + c.getLevel() + ")");
-        }
-
-        int choice = InputHelper.readChoice("Choose course ID: ", courses.size());
-        return courses.get(choice);
-    }
-
-    public static <T> List<T> filterEnrollments(Collection<? extends T> enrollments,
-                                                Predicate<? super T> predicate) {
-        return enrollments.stream()
-                .filter(predicate)
-                .collect(Collectors.toList());
-    }
-
-    public static List<Enrollment> filterEnrollmentsByStudent(
-            Collection<Enrollment> enrollments,
-            Student student) {
-        return filterEnrollments(enrollments, e -> e.student().equals(student));
-    }
-
-    public static List<Enrollment> filterEnrollmentsByCourse(
-            Collection<Enrollment> enrollments,
-            Course course) {
-        return filterEnrollments(enrollments, e -> e.course().equals(course));
-    }
-
-    public static List<Enrollment> filterEnrollmentsBySemester(
-            Collection<Enrollment> enrollments,
-            Semester semester) {
-        return filterEnrollments(enrollments, e -> e.semester() == semester);
-    }
-
-    public static List<Enrollment> filterActiveEnrollments(Collection<Enrollment> enrollments) {
-        return filterEnrollments(enrollments, Enrollment::isActive);
-    }
-
-    public static List<Enrollment> filterPassedEnrollments(Collection<Enrollment> enrollments) {
-        return filterEnrollments(enrollments, Enrollment::isPassed);
-    }
-
-    public static List<String> getEnrolledCourseNames(Collection<Enrollment> enrollments) {
-        return enrollments.stream()
-                .map(e -> e.course().getName())
-                .collect(Collectors.toList());
-    }
-
+    /**
+     * Finds top enrollment by grade.
+     * Demonstrates Optional return type.
+     */
     public static Optional<Enrollment> findTopEnrollment(Collection<Enrollment> enrollments) {
         return enrollments.stream()
                 .filter(Enrollment::isPassed)
                 .max(Comparator.comparingDouble(e -> e.grade().getGradePoint()));
     }
 
-    public static long countByStatus(Collection<Enrollment> enrollments, EnrollmentStatus status) {
-        return enrollments.stream()
-                .filter(e -> e.status() == status)
-                .count();
-    }
-
+    /**
+     * Calculates completion rate percentage.
+     * Demonstrates stream operations with calculations.
+     */
     public static double calculateCompletionRate(Collection<Enrollment> enrollments) {
         long total = enrollments.size();
         if (total == 0) return 0.0;
@@ -201,16 +135,15 @@ public class EnrollmentService {
         return (completed * 100.0) / total;
     }
 
-    public static <T, R> List<R> transformEnrollments(
-            Collection<? extends T> enrollments,
-            Function<? super T, ? extends R> transformer) {
-        return enrollments.stream()
-                .map(transformer)
-                .collect(Collectors.toList());
-    }
+    private static Course selectCourse(List<Course> courses) throws TooManyAttemptsException {
+        System.out.println("Available courses:");
+        for (int i = 0; i < courses.size(); i++) {
+            Course c = courses.get(i);
+            System.out.println((i + 1) + ": " + c.getName() + " (ECTS: " + c.getECTS() +
+                    ", Level: " + c.getLevel() + ")");
+        }
 
-    public static List<String> getStudentNamesFromEnrollments(Collection<Enrollment> enrollments) {
-        return transformEnrollments(enrollments,
-                e -> e.student().getFirstName() + " " + e.student().getLastName());
+        int choice = InputHelper.readChoice("Choose course ID: ", courses.size());
+        return courses.get(choice);
     }
 }

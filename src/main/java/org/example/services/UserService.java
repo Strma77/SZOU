@@ -6,14 +6,11 @@ import org.example.utils.InputHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.function.Predicate;
 
 /**
  * Service for managing users (professors and students).
- * Includes sorting with Comparators and stream operations.
  */
 public class UserService {
 
@@ -24,7 +21,7 @@ public class UserService {
         int profNum = InputHelper.readPositiveInt("How many professors would you like to input?: ");
 
         for (int i = 0; i < profNum; i++) {
-            logger.info("\nProfessor input #{}", i + 1);
+            logger.info("Professor input #{}", i + 1);
             String firstName = InputHelper.readNonEmptyString("Name: ");
             String lastName = InputHelper.readNonEmptyString("Surname: ");
             int ID = 10 + i;
@@ -48,7 +45,7 @@ public class UserService {
         int studNum = InputHelper.readPositiveInt("How many students would you like to input?: ");
 
         for (int i = 0; i < studNum; i++) {
-            logger.info("\nStudent input #{}", i + 1);
+            logger.info("Student input #{}", i + 1);
             String firstName = InputHelper.readNonEmptyString("Name: ");
             String lastName = InputHelper.readNonEmptyString("Surname: ");
             int ID = 100 + i;
@@ -67,15 +64,29 @@ public class UserService {
         return students;
     }
 
+    /**
+     * Merges professors and students into one list.
+     * Demonstrates PECS wildcards with Stream.concat().
+     */
     public static List<User> mergeUsers(Set<Professor> professors, Set<Student> students) {
         List<User> users = Stream.concat(professors.stream(), students.stream())
                 .collect(Collectors.toCollection(ArrayList::new));
-        logger.info("\n======All users connected in one list: overall {}======", users.size());
+        logger.info("All users merged: {} total", users.size());
         return users;
     }
 
     /**
-     * Sorts students by first name (alphabetically).
+     * Sorts students by GPA (descending - highest first).
+     * Demonstrates Comparator and lambda expressions.
+     */
+    public static List<Student> sortStudentsByGPA(Collection<Student> students) {
+        return students.stream()
+                .sorted(Comparator.comparingDouble(Student::calculateGPA).reversed())
+                .toList();
+    }
+
+    /**
+     * Sorts students by name.
      */
     public static List<Student> sortStudentsByName(Collection<Student> students) {
         return students.stream()
@@ -85,36 +96,8 @@ public class UserService {
     }
 
     /**
-     * Sorts students by GPA (descending - highest first).
-     */
-    public static List<Student> sortStudentsByGPA(Collection<Student> students) {
-        return students.stream()
-                .sorted(Comparator.comparingDouble(Student::calculateGPA).reversed())
-                .toList();
-    }
-
-    /**
-     * Sorts students by number of enrolled courses (descending).
-     */
-    public static List<Student> sortStudentsByCourseCount(Collection<Student> students) {
-        return students.stream()
-                .sorted(Comparator.comparingInt(Student::getCourseCount).reversed())
-                .toList();
-    }
-
-    /**
-     * Sorts professors by last name (alphabetically).
-     */
-    public static List<Professor> sortProfessorsByName(Collection<Professor> professors) {
-        return professors.stream()
-                .sorted(Comparator.comparing(Professor::getLastName)
-                        .thenComparing(Professor::getFirstName))
-                .toList();
-    }
-
-    /**
-     * Groups students by their role (always STUDENT, but demonstrates groupingBy).
-     * More useful: groups by course count ranges.
+     * Groups students by course load.
+     * Demonstrates groupingBy collector.
      */
     public static Map<String, List<Student>> groupStudentsByCourseLoad(
             Collection<Student> students) {
@@ -128,51 +111,17 @@ public class UserService {
     }
 
     /**
-     * Partitions students by GPA: passing (>= 2.0) vs failing (< 2.0).
+     * Finds top student by GPA.
+     * Demonstrates Optional return type.
      */
-    public static Map<Boolean, List<Student>> partitionStudentsByGPA(
-            Collection<Student> students) {
+    public static Optional<Student> findTopStudent(Collection<Student> students) {
         return students.stream()
-                .collect(Collectors.partitioningBy(s -> s.calculateGPA() >= 2.0));
+                .max(Comparator.comparingDouble(Student::calculateGPA));
     }
 
     /**
-     * Groups professors by number of courses they teach.
+     * Searches for student by first name.
      */
-    public static Map<Integer, List<Professor>> groupProfessorsByCourseCount(
-            Collection<Professor> professors) {
-        return professors.stream()
-                .collect(Collectors.groupingBy(Professor::getCourseCount));
-    }
-
-    /**
-     * Gets the first student (by insertion order).
-     */
-    public static Optional<Student> getFirstStudent(Set<Student> students) {
-        if (students instanceof SequencedSet<Student> seq) {
-            try{
-                return Optional.of(seq.getFirst());
-            }catch(NoSuchElementException e){
-                return Optional.empty();
-            }
-        }
-        return students.stream().findFirst();
-    }
-
-    /**
-     * Gets the last student (by insertion order).
-     */
-    public static Optional<Student> getLastStudent(Set<Student> students) {
-        if (students instanceof SequencedSet<Student> seq) {
-            try {
-                return Optional.of(seq.getLast());
-            }catch(NoSuchElementException e){
-                return Optional.empty();
-            }
-        }
-        return students.stream().reduce((first, second) -> second);
-    }
-
     public static void findStudentByFirstName(Collection<Student> students)
             throws NotFoundException, TooManyAttemptsException {
         String name = InputHelper.readNonEmptyString("Name of the student: ");
@@ -192,6 +141,9 @@ public class UserService {
         });
     }
 
+    /**
+     * Searches for professor by last name.
+     */
     public static void findProfessorByLastName(Collection<Professor> professors)
             throws NotFoundException, TooManyAttemptsException {
         String lastName = InputHelper.readNonEmptyString("Professor surname: ");
@@ -211,57 +163,29 @@ public class UserService {
         });
     }
 
-    public static <T> List<T> filterElements(Collection<? extends T> elements, Predicate<? super T> predicate){
-        return elements.stream()
-                .filter(predicate)
-                .collect(Collectors.toList());
+    /**
+     * Gets first and last students from sequenced set.
+     * Demonstrates SequencedSet operations.
+     */
+    public static Optional<Student> getFirstStudent(Set<Student> students) {
+        if (students instanceof SequencedSet<Student> seq) {
+            try {
+                return Optional.of(seq.getFirst());
+            } catch (NoSuchElementException e) {
+                return Optional.empty();
+            }
+        }
+        return students.stream().findFirst();
     }
 
-    public static List<Student> filterStudentsByGPA(Collection<Student> students, double minGPA){
-        return filterElements(students, s -> s.calculateGPA() >= minGPA);
-    }
-
-    public static List<Student> filterStudentByCourseCount(Collection<Student> students, int minCourses){
-        return filterElements(students, s -> s.getCourseCount() >= minCourses);
-    }
-
-    public static <T, R> List<R> mapElements(Collection<? extends T> elements, Function<? super T, ? extends R> mapper){
-        return elements.stream()
-                .map(mapper)
-                .collect(Collectors.toList());
-    }
-
-    public static List<String> getStudentNames(Collection<Student> students){
-        return mapElements(students, s-> s.getFirstName() + " " + s.getLastName());
-    }
-
-    public static List<String> getStudentEmails(Collection<Student> students){
-        return mapElements(students, Student::getEmail);
-    }
-
-    public static <T extends Comparable<T>> Optional<T> findMax(Collection<T> elements){
-        return elements.stream()
-                .max(Comparator.naturalOrder());
-    }
-
-    public static Optional<Student> findTopStudent(Collection<Student> students){
-        return students.stream()
-                .max(Comparator.comparingDouble(Student::calculateGPA));
-    }
-
-    public static double calculateTotalGPA(Collection<Student> students){
-        return students.stream()
-                .mapToDouble(Student::calculateGPA)
-                .reduce(0.0, Double::sum);
-    }
-
-    public static <T> void addAllElements(Collection<? super T> dest, Collection<? extends T> src){
-        dest.addAll(src);
-    }
-
-    public static <T extends User & Comparable<T>> List<T> sortUsers(Collection<T> users){
-        return users.stream()
-                .sorted()
-                .collect(Collectors.toList());
+    public static Optional<Student> getLastStudent(Set<Student> students) {
+        if (students instanceof SequencedSet<Student> seq) {
+            try {
+                return Optional.of(seq.getLast());
+            } catch (NoSuchElementException e) {
+                return Optional.empty();
+            }
+        }
+        return students.stream().reduce((first, second) -> second);
     }
 }

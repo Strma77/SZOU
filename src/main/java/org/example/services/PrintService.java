@@ -17,27 +17,6 @@ public class PrintService {
 
     private static final Logger logger = LoggerFactory.getLogger(PrintService.class);
 
-    /**
-     * Prints all enrollment records with student, course, semester, and grade information.
-     */
-    public static void printEnrollments(Collection<Enrollment> enrollments) {
-        if (enrollments == null || enrollments.isEmpty()) {
-            System.out.println("No enrollments to display.");
-            return;
-        }
-
-        System.out.println("\n========== ENROLLMENTS ==========");
-        enrollments.forEach(e -> {
-            System.out.println("Student: " + e.student().getFirstName() + " " +
-                    e.student().getLastName() +
-                    " | Course: " + e.course().getName() +
-                    " | Semester: " + e.semester() +
-                    " | Status: " + e.status() +
-                    " | Grade: " + (e.grade() == GradeType.NOT_GRADED ?
-                    "Not graded" : e.grade().name().replace("_", "+")));
-        });
-        System.out.println("=================================\n");
-    }
 
     /**
      * Prints all users (professors and students) with their courses and details.
@@ -131,23 +110,6 @@ public class PrintService {
         });
         System.out.println("============================================\n");
     }
-
-    /**
-     * Prints courses grouped by level.
-     */
-    public static void printCoursesByLevel(Collection<Course> courses) {
-        Map<org.example.enums.CourseLevel, List<Course>> grouped =
-                CourseService.groupCoursesByLevel(courses);
-
-        System.out.println("\n========== COURSES BY LEVEL ==========");
-        grouped.forEach((level, list) -> {
-            System.out.println("\n" + level + ": " + list.size() + " courses");
-            list.forEach(c -> System.out.println("  - " + c.getName() +
-                    " (ECTS: " + c.getECTS() + ")"));
-        });
-        System.out.println("======================================\n");
-    }
-
 
     private static void printProfessor(Professor p, Map<String, Course> courseMap) {
         System.out.println("👨‍🏫 PROFESSOR: " + p.getFirstName() + " " + p.getLastName());

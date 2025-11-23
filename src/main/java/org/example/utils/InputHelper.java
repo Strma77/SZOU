@@ -19,7 +19,7 @@ public class InputHelper {
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void closeScanner(){
-        if (scanner != null) scanner.close();
+        scanner.close();
     }
 
     public static int readPositiveInt(String msg) throws TooManyAttemptsException {

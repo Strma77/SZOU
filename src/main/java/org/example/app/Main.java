@@ -3,6 +3,7 @@ package org.example.app;
 import org.example.entities.*;
 import org.example.exceptions.*;
 import org.example.services.*;
+import org.example.utils.CollectionUtils;
 import org.example.utils.InputHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +27,7 @@ public class Main {
             List<Enrollment> enrollments = EnrollmentService.enrollStudents(students, courses);
             enrollments = GradingService.assignRandomGrades(enrollments);
 
-            DemonstrationService.demonstrateAll(students, professors, courses, enrollments);
-            demonstrateLambdaUtils(students, courses);
+            demonstrateFeatures(students, courses, enrollments);
 
             SearchService.searchLoop(students, professors, courses);
 
@@ -48,54 +48,84 @@ public class Main {
         }
     }
 
-    private static void demonstrateLambdaUtils(Set<Student> students, List<Course> courses) {
+    private static void demonstrateFeatures(Set<Student> students,
+                                            List<Course> courses,
+                                            List<Enrollment> enrollments) {
         System.out.println("\n" + "=".repeat(50));
-        System.out.println("🧰 DEMONSTRATION: LAMBDA UTILS");
+        System.out.println("📊 SYSTEM OVERVIEW & FEATURES");
         System.out.println("=".repeat(50));
 
-        System.out.println("\n1️⃣  Transform - Extract student names:");
-        List<String> names = org.example.utils.LambdaUtils.transform(students,
-                s -> s.getFirstName() + " " + s.getLastName());
-        names.forEach(n -> System.out.println("   - " + n));
+        // 1. Lambda + Sorting + Streams
+        System.out.println("\n1️⃣  Top 3 Students by GPA (Lambda + Comparator):");
+        UserService.sortStudentsByGPA(students).stream()
+                .limit(3)
+                .forEach(s -> System.out.println("   - " + s.getFirstName() + " " +
+                        s.getLastName() + ": " + String.format("%.2f", s.calculateGPA())));
 
-        System.out.println("\n2️⃣  Filter - Students with GPA >= 3.0:");
-        List<Student> highGPA = org.example.utils.LambdaUtils.filter(students,
-                s -> s.calculateGPA() >= 3.0);
-        System.out.println("   Found: " + highGPA.size() + " students");
+        // 2. GroupingBy Collector
+        System.out.println("\n2️⃣  Courses by Level (groupingBy):");
+        CourseService.groupCoursesByLevel(courses)
+                .forEach((level, list) ->
+                        System.out.println("   " + level + ": " + list.size() + " course(s)"));
 
-        System.out.println("\n3️⃣  FindFirst - Student with GPA > 4.0 (Optional):");
-        org.example.utils.LambdaUtils.findFirst(students, s -> s.calculateGPA() > 4.0)
+        // 3. PartitioningBy Collector
+        System.out.println("\n3️⃣  Enrollments by Passing Status (partitioningBy):");
+        Map<Boolean, List<Enrollment>> partitioned =
+                EnrollmentService.partitionEnrollmentsByPassing(enrollments);
+        System.out.println("   ✅ Passed: " + partitioned.get(true).size());
+        System.out.println("   ❌ Failed: " + partitioned.get(false).size());
+
+        // 4. Optional Usage
+        System.out.println("\n4️⃣  Top Student (Optional):");
+        GradingService.findTopStudentByGPA(students)
                 .ifPresentOrElse(
-                        s -> System.out.println("   Found: " + s.getFirstName() + " " +
-                                s.getLastName() + " (GPA: " + String.format("%.2f", s.calculateGPA()) + ")"),
-                        () -> System.out.println("   No student found")
+                        s -> System.out.println("   " + s.getFirstName() + " " +
+                                s.getLastName() + " (GPA: " +
+                                String.format("%.2f", s.calculateGPA()) + ")"),
+                        () -> System.out.println("   No students found")
                 );
 
-        System.out.println("\n4️⃣  Partition - Passing vs At-Risk:");
-        Map<Boolean, List<Student>> partitioned = org.example.utils.LambdaUtils.partition(
-                new ArrayList<>(students), s -> s.calculateGPA() >= 2.0);
-        System.out.println("   ✅ Passing: " + partitioned.get(true).size());
-        System.out.println("   ❌ At-Risk: " + partitioned.get(false).size());
+        // 5. Generic Utility Method with PECS
+        System.out.println("\n5️⃣  High Performers (Generic Filter with PECS):");
+        List<Student> highPerformers = CollectionUtils.filter(
+                students, s -> s.calculateGPA() >= 4.0);
+        System.out.println("   Found: " + highPerformers.size() + " student(s)");
+        highPerformers.forEach(s -> System.out.println("   - " + s.getFirstName() +
+                " " + s.getLastName()));
 
-        System.out.println("\n5️⃣  Count - Students taking >= 2 courses:");
-        long count = org.example.utils.LambdaUtils.count(students, s -> s.getCourseCount() >= 2);
-        System.out.println("   Count: " + count);
+        // 6. Generic Mapping
+        System.out.println("\n6️⃣  Student Names (Generic Map):");
+        List<String> names = CollectionUtils.map(
+                students, s -> s.getFirstName() + " " + s.getLastName());
+        names.stream().limit(3).forEach(name -> System.out.println("   - " + name));
 
-        System.out.println("\n6️⃣  AnyMatch - Any student with GPA = 5.0?");
-        boolean perfect = org.example.utils.LambdaUtils.anyMatch(students, s -> s.calculateGPA() == 5.0);
-        System.out.println("   " + (perfect ? "Yes ✅" : "No ❌"));
+        // 7. Bounded Type Parameter
+        System.out.println("\n7️⃣  Most Popular Course (Bounded Generic):");
+        CourseService.findMostPopularCourse(courses)
+                .ifPresent(c -> System.out.println("   " + c.getName() +
+                        " (" + c.getEnrollmentCount() + " students)"));
 
-        System.out.println("\n7️⃣  PECS CopyIf - Copy high GPA students:");
-        List<Student> highPerformers = new ArrayList<>();
-        org.example.utils.LambdaUtils.copyIf(students, highPerformers, s -> s.calculateGPA() >= 4.0);
-        System.out.println("   Copied: " + highPerformers.size() + " students");
+        // 8. SequencedSet operations
+        System.out.println("\n8️⃣  First & Last Students (SequencedSet):");
+        UserService.getFirstStudent(students)
+                .ifPresent(s -> System.out.println("   First: " + s.getFirstName() +
+                        " " + s.getLastName()));
+        UserService.getLastStudent(students)
+                .ifPresent(s -> System.out.println("   Last: " + s.getFirstName() +
+                        " " + s.getLastName()));
 
-        System.out.println("\n8️⃣  GroupBy - Courses by ECTS:");
-        Map<Integer, List<Course>> grouped = org.example.utils.LambdaUtils.groupByWithPECS(
-                courses, Course::getECTS);
-        grouped.forEach((ects, list) ->
-                System.out.println("   " + ects + " ECTS: " + list.size() + " course(s)"));
+        // 9. Stream reduction
+        System.out.println("\n9️⃣  Total ECTS Available (Stream Reduction):");
+        int totalECTS = CourseService.calculateTotalECTS(courses);
+        System.out.println("   " + totalECTS + " ECTS");
 
-        System.out.println("\n✅ LambdaUtils demonstration completed!");
+        // 10. Consumer Super (PECS) - copyFiltered
+        System.out.println("\n🔟 Copy Passing Students (Consumer Super):");
+        List<Student> passingStudents = new ArrayList<>();
+        CollectionUtils.copyFiltered(students, passingStudents,
+                s -> s.calculateGPA() >= 2.0);
+        System.out.println("   Copied: " + passingStudents.size() + " student(s)");
+
+        System.out.println("\n" + "=".repeat(50) + "\n");
     }
 }

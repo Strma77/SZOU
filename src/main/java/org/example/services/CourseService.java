@@ -13,7 +13,6 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -57,6 +56,7 @@ public class CourseService {
 
     /**
      * Sorts courses by name (alphabetically).
+     * Demonstrates Comparator and lambda.
      */
     public static List<Course> sortCoursesByName(Collection<Course> courses) {
         return courses.stream()
@@ -74,15 +74,6 @@ public class CourseService {
     }
 
     /**
-     * Sorts courses by difficulty level (BEGINNER to EXPERT).
-     */
-    public static List<Course> sortCoursesByLevel(Collection<Course> courses) {
-        return courses.stream()
-                .sorted(Comparator.comparing(c -> c.getLevel().getDifficulty()))
-                .toList();
-    }
-
-    /**
      * Sorts courses by enrollment count (descending).
      */
     public static List<Course> sortCoursesByEnrollment(Collection<Course> courses) {
@@ -93,6 +84,7 @@ public class CourseService {
 
     /**
      * Groups courses by their difficulty level.
+     * Demonstrates groupingBy collector.
      */
     public static Map<CourseLevel, List<Course>> groupCoursesByLevel(
             Collection<Course> courses) {
@@ -100,9 +92,6 @@ public class CourseService {
                 .collect(Collectors.groupingBy(Course::getLevel));
     }
 
-    /**
-     * Groups courses by professor.
-     */
     public static Map<String, List<Course>> groupCoursesByProfessor(
             Collection<Course> courses) {
         return courses.stream()
@@ -110,27 +99,9 @@ public class CourseService {
                         c.getProfessor().getFirstName() + " " + c.getProfessor().getLastName()));
     }
 
-    /**
-     * Partitions courses by enrollment: popular (>= 3 students) vs unpopular.
-     */
-    public static Map<Boolean, List<Course>> partitionCoursesByPopularity(
-            Collection<Course> courses) {
+    public static Optional<Course> findMostPopularCourse(Collection<Course> courses) {
         return courses.stream()
-                .collect(Collectors.partitioningBy(c -> c.getEnrollmentCount() >= 3));
-    }
-
-    /**
-     * Groups courses by ECTS range.
-     */
-    public static Map<String, List<Course>> groupCoursesByECTSRange(
-            Collection<Course> courses) {
-        return courses.stream()
-                .collect(Collectors.groupingBy(c -> {
-                    int ects = c.getECTS();
-                    if (ects <= 3) return "Small (1-3 ECTS)";
-                    if (ects <= 6) return "Medium (4-6 ECTS)";
-                    return "Large (7+ ECTS)";
-                }));
+                .max(Comparator.comparingInt(Course::getEnrollmentCount));
     }
 
     public static void findCourseByName(Collection<Course> courses)
@@ -151,6 +122,12 @@ public class CourseService {
                     c.getProfessor().getLastName() + ")");
             logger.info("Course found: {}", c.getName());
         });
+    }
+
+    public static int calculateTotalECTS(Collection<Course> courses) {
+        return courses.stream()
+                .mapToInt(Course::getECTS)
+                .sum();
     }
 
     private static Professor selectProfessor(List<User> users) throws TooManyAttemptsException {
@@ -219,61 +196,5 @@ public class CourseService {
             }
         }
         throw new TooManyAttemptsException("Invalid time entered 3 times.");
-    }
-
-    public static <T> List<T> filterCourses(Collection<? extends T> courses,
-                                            Predicate<? super T> predicate) {
-        return courses.stream()
-                .filter(predicate)
-                .collect(Collectors.toList());
-    }
-
-    public static List<Course> filterCoursesByMinECTS(Collection<Course> courses, int minECTS) {
-        return filterCourses(courses, c -> c.getECTS() >= minECTS);
-    }
-
-    public static List<Course> filterCoursesByLevel(Collection<Course> courses, CourseLevel level) {
-        return filterCourses(courses, c -> c.getLevel() == level);
-    }
-
-    public static List<Course> filterCoursesByProfessor(Collection<Course> courses, Professor professor) {
-        return filterCourses(courses, c -> c.getProfessor().equals(professor));
-    }
-
-    public static List<String> getCourseNames(Collection<Course> courses) {
-        return courses.stream()
-                .map(Course::getName)
-                .collect(Collectors.toList());
-    }
-
-    public static Optional<Course> findMostPopularCourse(Collection<Course> courses) {
-        return courses.stream()
-                .max(Comparator.comparingInt(Course::getEnrollmentCount));
-    }
-
-    public static int calculateTotalECTS(Collection<Course> courses) {
-        return courses.stream()
-                .mapToInt(Course::getECTS)
-                .reduce(0, Integer::sum);
-    }
-
-    public static double calculateAverageEnrollment(Collection<Course> courses) {
-        return courses.stream()
-                .mapToInt(Course::getEnrollmentCount)
-                .average()
-                .orElse(0.0);
-    }
-
-    public static <T extends Comparable<T>> Optional<T> findMaximum(Collection<T> elements) {
-        return elements.stream()
-                .max(Comparator.naturalOrder());
-    }
-
-    public static boolean anyCourseMatches(Collection<Course> courses, Predicate<Course> predicate) {
-        return courses.stream().anyMatch(predicate);
-    }
-
-    public static boolean allCoursesMatch(Collection<Course> courses, Predicate<Course> predicate) {
-        return courses.stream().allMatch(predicate);
     }
 }
