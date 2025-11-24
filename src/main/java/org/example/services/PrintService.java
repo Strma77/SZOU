@@ -39,10 +39,9 @@ public class PrintService {
 
         for (User u : users) {
             switch (u) {
-                case null -> {}
                 case Professor p -> printProfessor(p, courseMap);
                 case Student s -> printStudent(s, courseMap);
-                default -> {}
+                case null, default -> {}
             }
             System.out.println();
         }
@@ -95,9 +94,6 @@ public class PrintService {
         System.out.println("=======================================\n");
     }
 
-    /**
-     * Prints enrollments grouped by semester.
-     */
     public static void printEnrollmentsBySemester(Collection<Enrollment> enrollments) {
         Map<org.example.enums.Semester, List<Enrollment>> grouped =
                 EnrollmentService.groupEnrollmentsBySemester(enrollments);

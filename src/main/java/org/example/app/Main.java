@@ -55,27 +55,25 @@ public class Main {
         System.out.println("📊 SYSTEM OVERVIEW & FEATURES");
         System.out.println("=".repeat(50));
 
-        // 1. Lambda + Sorting + Streams
         System.out.println("\n1️⃣  Top 3 Students by GPA (Lambda + Comparator):");
         UserService.sortStudentsByGPA(students).stream()
                 .limit(3)
                 .forEach(s -> System.out.println("   - " + s.getFirstName() + " " +
                         s.getLastName() + ": " + String.format("%.2f", s.calculateGPA())));
 
-        // 2. GroupingBy Collector
+
         System.out.println("\n2️⃣  Courses by Level (groupingBy):");
         CourseService.groupCoursesByLevel(courses)
                 .forEach((level, list) ->
                         System.out.println("   " + level + ": " + list.size() + " course(s)"));
 
-        // 3. PartitioningBy Collector
+
         System.out.println("\n3️⃣  Enrollments by Passing Status (partitioningBy):");
         Map<Boolean, List<Enrollment>> partitioned =
                 EnrollmentService.partitionEnrollmentsByPassing(enrollments);
         System.out.println("   ✅ Passed: " + partitioned.get(true).size());
         System.out.println("   ❌ Failed: " + partitioned.get(false).size());
 
-        // 4. Optional Usage
         System.out.println("\n4️⃣  Top Student (Optional):");
         GradingService.findTopStudentByGPA(students)
                 .ifPresentOrElse(
@@ -85,7 +83,6 @@ public class Main {
                         () -> System.out.println("   No students found")
                 );
 
-        // 5. Generic Utility Method with PECS
         System.out.println("\n5️⃣  High Performers (Generic Filter with PECS):");
         List<Student> highPerformers = CollectionUtils.filter(
                 students, s -> s.calculateGPA() >= 4.0);
@@ -93,19 +90,16 @@ public class Main {
         highPerformers.forEach(s -> System.out.println("   - " + s.getFirstName() +
                 " " + s.getLastName()));
 
-        // 6. Generic Mapping
         System.out.println("\n6️⃣  Student Names (Generic Map):");
         List<String> names = CollectionUtils.map(
                 students, s -> s.getFirstName() + " " + s.getLastName());
         names.stream().limit(3).forEach(name -> System.out.println("   - " + name));
 
-        // 7. Bounded Type Parameter
         System.out.println("\n7️⃣  Most Popular Course (Bounded Generic):");
         CourseService.findMostPopularCourse(courses)
                 .ifPresent(c -> System.out.println("   " + c.getName() +
                         " (" + c.getEnrollmentCount() + " students)"));
 
-        // 8. SequencedSet operations
         System.out.println("\n8️⃣  First & Last Students (SequencedSet):");
         UserService.getFirstStudent(students)
                 .ifPresent(s -> System.out.println("   First: " + s.getFirstName() +
@@ -114,12 +108,10 @@ public class Main {
                 .ifPresent(s -> System.out.println("   Last: " + s.getFirstName() +
                         " " + s.getLastName()));
 
-        // 9. Stream reduction
         System.out.println("\n9️⃣  Total ECTS Available (Stream Reduction):");
         int totalECTS = CourseService.calculateTotalECTS(courses);
         System.out.println("   " + totalECTS + " ECTS");
 
-        // 10. Consumer Super (PECS) - copyFiltered
         System.out.println("\n🔟 Copy Passing Students (Consumer Super):");
         List<Student> passingStudents = new ArrayList<>();
         CollectionUtils.copyFiltered(students, passingStudents,

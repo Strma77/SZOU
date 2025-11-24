@@ -8,10 +8,10 @@ import java.util.Objects;
  */
 public class User extends Person {
 
-    private String username;
-    private String password;
-    private String email;
-    private Role role;
+    private final String username;
+    private final String password;
+    private final String email;
+    private final Role role;
 
     protected User(UserBuilder builder){
         super(builder.firstName, builder.lastName, builder.ID);

@@ -17,33 +17,6 @@ public class GradingService {
     private static final Logger logger = LoggerFactory.getLogger(GradingService.class);
 
     /**
-     * Assigns a grade to a student for a specific course.
-     */
-    public static void gradeStudent(Student student, String courseName, GradeType grade) {
-        student.setGrade(courseName, grade);
-        logger.info("Student {} {} received grade {} for course {}",
-                student.getFirstName(), student.getLastName(), grade, courseName);
-    }
-
-    /**
-     * Assigns a grade to an enrollment (creates new enrollment with grade).
-     */
-    public static Enrollment gradeEnrollment(Enrollment enrollment, GradeType grade) {
-        // Update the student's grade map FIRST
-        enrollment.student().setGrade(enrollment.course().getName(), grade);
-
-        // Then create new enrollment with the grade
-        Enrollment graded = enrollment.withGrade(grade);
-
-        logger.info("Enrollment graded: {} {} in {} - Grade: {}",
-                enrollment.student().getFirstName(),
-                enrollment.student().getLastName(),
-                enrollment.course().getName(),
-                grade);
-        return graded;
-    }
-
-    /**
      * Assigns random grades to all enrollments (for testing purposes).
      * IMPORTANT: This updates both the Enrollment records AND the Student grade maps.
      */
@@ -104,18 +77,6 @@ public class GradingService {
                     if (gpa > 0.0) return "Poor (<2.0)";
                     return "Not Graded";
                 }));
-    }
-
-    /**
-     * Finds students with GPA above a threshold.
-     * Demonstrates filtering and sorting.
-     */
-    public static List<Student> findHonorStudents(Collection<Student> students,
-                                                  double minGPA) {
-        return students.stream()
-                .filter(s -> s.calculateGPA() >= minGPA)
-                .sorted(Comparator.comparingDouble(Student::calculateGPA).reversed())
-                .collect(Collectors.toList());
     }
 
     /**

@@ -97,7 +97,6 @@ public class UserService {
 
     /**
      * Groups students by course load.
-     * Demonstrates groupingBy collector.
      */
     public static Map<String, List<Student>> groupStudentsByCourseLoad(
             Collection<Student> students) {
