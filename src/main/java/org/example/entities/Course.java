@@ -3,12 +3,17 @@ package org.example.entities;
 import org.example.enums.CourseLevel;
 import org.example.exceptions.DuplicateEnrollmentException;
 import org.example.exceptions.LimitExceededException;
+
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.*;
 
 /**
  * Represents an academic course with lessons, professor, ECTS credits, and difficulty level.
  */
-public class Course {
+public class Course implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 5L;
 
     private final String name;
     private final Professor professor;

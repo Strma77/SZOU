@@ -15,55 +15,6 @@ import java.util.stream.Stream;
 public class UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
-
-    public static Set<Professor> createProfessors() throws TooManyAttemptsException {
-        Set<Professor> professors = new LinkedHashSet<>();
-        int profNum = InputHelper.readPositiveInt("How many professors would you like to input?: ");
-
-        for (int i = 0; i < profNum; i++) {
-            logger.info("Professor input #{}", i + 1);
-            String firstName = InputHelper.readNonEmptyString("Name: ");
-            String lastName = InputHelper.readNonEmptyString("Surname: ");
-            int ID = 10 + i;
-            String username = (firstName.charAt(0) + lastName).toLowerCase();
-            String email = username + ID + "@profuni.hr";
-            String passwd = ID + "123";
-            int maxC = InputHelper.readPositiveInt("How many courses is this teacher teaching?: ");
-
-            professors.add(new Professor.ProfessorBuilder(firstName, lastName, ID)
-                    .username(username)
-                    .password(passwd)
-                    .email(email)
-                    .maxCourses(maxC)
-                    .build());
-        }
-        return professors;
-    }
-
-    public static Set<Student> createStudents() throws TooManyAttemptsException {
-        Set<Student> students = new LinkedHashSet<>();
-        int studNum = InputHelper.readPositiveInt("How many students would you like to input?: ");
-
-        for (int i = 0; i < studNum; i++) {
-            logger.info("Student input #{}", i + 1);
-            String firstName = InputHelper.readNonEmptyString("Name: ");
-            String lastName = InputHelper.readNonEmptyString("Surname: ");
-            int ID = 100 + i;
-            String username = (firstName.charAt(0) + lastName).toLowerCase();
-            String email = username + ID + "@studuni.hr";
-            String passwd = ID + "456";
-            int maxC = InputHelper.readPositiveInt("How many courses is this student taking?: ");
-
-            students.add(new Student.StudentBuilder(firstName, lastName, ID)
-                    .username(username)
-                    .password(passwd)
-                    .email(email)
-                    .maxCourses(maxC)
-                    .build());
-        }
-        return students;
-    }
-
     /**
      * Merges professors and students into one list.
      * Demonstrates PECS wildcards with Stream.concat().
@@ -85,9 +36,6 @@ public class UserService {
                 .toList();
     }
 
-    /**
-     * Sorts students by name.
-     */
     public static List<Student> sortStudentsByName(Collection<Student> students) {
         return students.stream()
                 .sorted(Comparator.comparing(Student::getFirstName)

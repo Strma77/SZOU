@@ -6,12 +6,16 @@ import org.example.exceptions.DuplicateEnrollmentException;
 import org.example.exceptions.LimitExceededException;
 import org.example.exceptions.NegativeValueException;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.*;
 
 /**
  * Represents a student with course enrollment capabilities and GPA tracking.
  */
-public class Student extends User {
+public class Student extends User implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 3L;
 
     private final Set<String> enrolledCourses;
     private final int maxCourses;

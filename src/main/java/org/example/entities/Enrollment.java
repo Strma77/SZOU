@@ -3,6 +3,9 @@ package org.example.entities;
 import org.example.enums.EnrollmentStatus;
 import org.example.enums.GradeType;
 import org.example.enums.Semester;
+
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -17,7 +20,10 @@ public record Enrollment(
         GradeType grade,
         LocalDateTime enrollmentDate,
         LocalDateTime completionDate
-) {
+) implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 7L;
+
     public Enrollment {
         Objects.requireNonNull(student, "Student cannot be null");
         Objects.requireNonNull(course, "Course cannot be null");

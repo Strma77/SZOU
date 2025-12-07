@@ -1,6 +1,9 @@
 package org.example.entities;
 
 import org.example.enums.LessonType;
+
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -9,7 +12,9 @@ import java.util.Optional;
 /**
  * Represents a lesson with name, duration, type, and optional scheduling information.
  */
-public non-sealed class Lesson implements Schedulable {
+public non-sealed class Lesson implements Schedulable, Serializable {
+    @Serial
+    private static final long serialVersionUID = 6L;
 
     private final String name;
     private final int lengthMinutes;

@@ -1,5 +1,7 @@
 package org.example.entities;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -8,7 +10,9 @@ import java.util.Objects;
  * This base class provides immutable first name, last name, and ID fields
  * for all person entities in the system.
  */
-public abstract class Person {
+public abstract class Person implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     private final String firstName;
     private final String lastName;

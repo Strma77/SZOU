@@ -5,12 +5,16 @@ import org.example.exceptions.DuplicateEnrollmentException;
 import org.example.exceptions.LimitExceededException;
 import org.example.exceptions.NegativeValueException;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.*;
 
 /**
  * Represents a professor with course teaching capabilities.
  */
-public class Professor extends User {
+public class Professor extends User implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 4L;
 
     private final Set<String> teachingCourses;
     private final int maxCourses;

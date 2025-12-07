@@ -1,12 +1,17 @@
 package org.example.entities;
 
 import org.example.enums.Role;
+
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Represents a user with authentication credentials, contact information, and role.
  */
-public class User extends Person {
+public class User extends Person implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 2L;
 
     private final String username;
     private final String password;
